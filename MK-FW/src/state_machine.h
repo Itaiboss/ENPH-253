@@ -4,6 +4,7 @@
  */
 
 #include <stdint.h>
+#include <string>
 class StateMachine {
  public:
     /**
@@ -40,11 +41,24 @@ class StateMachine {
     state getCurrentState();
 
     /**
+     * @brief Gets a state as a string
+     * 
+     * @return state as a string
+     */
+    std::string StateMachine::getStateString(StateMachine::state);
+
+    /**
      * @brief Returns the next state of the device
      * 
      * @return next device state
      */
     state getNextState();
+
+    /**
+     * @brief Determines the next state of the device
+     * 
+     */
+    void determineState();
 
  private:
     // Previous, current and next state trackers

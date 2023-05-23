@@ -26,8 +26,30 @@ void StateMachine::init() {
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
 
-state StateMachine::getCurrentState() {
+StateMachine::state StateMachine::getCurrentState() {
     return curr_state;
+}
+
+std::string StateMachine::getStateString(StateMachine::state) {
+    std::string state;
+    switch (state_machine.getCurrentState()) {
+        case TAPE_FOLLOW:
+            state = "TAPE_FOLLOW";
+            break;
+        case IR_FOLLOW:
+            state = "IR_FOLLOW";
+            break;
+        case ERROR:
+            state = "ERROR";
+            break;
+        case UNKNOWN:
+            state = "UNKNOWN";
+            break;
+        case INIT:
+            state = "INIT";
+            break;
+    }
+    return state;
 }
 
 void StateMachine::determineState() {
@@ -39,7 +61,7 @@ void StateMachine::determineState() {
         case IR_FOLLOW:
             next_state = irState();
             break;
-        case ERROR
+        case ERROR:
             next_state = errorState();
             break;
         case UNKNOWN:
@@ -50,7 +72,7 @@ void StateMachine::determineState() {
     }
 
     if (curr_state != next_state) {
-        CONSOLE_LOG(LOG_TAG, "Changing states");
+        CONSOLE_LOG(LOG_TAG, "Moving from %s ----> %s", getStateString(curr_state), getStateString(next_state));
         if (prev_state != curr_state) {
             prev_state = curr_state;
         }
@@ -58,15 +80,15 @@ void StateMachine::determineState() {
     }
 }
 
-tapeFollowState() {
+StateMachine::state tapeFollowState() {
 
 }
-irState() {
+StateMachine::state irState() {
 
 }
-errorState() {
+StateMachine::state errorState() {
 
 }
-initState() {
-    
+StateMachine::state initState() {
+
 }
