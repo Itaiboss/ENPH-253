@@ -14,8 +14,11 @@ static const char* LOG_TAG = "LOGS";
  * @param log_tag level of log to be used (1 to 5 which are ERROR, WARNING, INFORMATION, DEBUG, VERBOSE)
  * @param formatted_text text to be sent as a log. It can be plain text or formatted text with %s, %d, etc
 */
-void sendLog(const char* log_tag, const char* formatted_text) {
+void sendLog(const char* log_tag, const char* formatted_text,...) {
   char log_buffer[LOG_BUFF_LEN];
-  snprintf(log_buffer, LOG_BUFF_LEN, "%s: %s", log_tag, formatted_text);
+  va_list arg;
+  va_start(arg, formatted_text);
+  vsnprintf(log_buffer, LOG_BUFF_LEN, formatted_text, arg);
+  va_end(arg);
   Serial.println(log_buffer);
 }
