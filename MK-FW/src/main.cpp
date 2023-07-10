@@ -12,9 +12,14 @@
 #include <stdint.h>
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
+#include <state_machine.h>
+#include <logs.h>
+
 #pragma once
 
+
 void setup() {
+  StateMachine state_machine;
   static const char* LOG_TAG = "MAIN";
   delay(100);  // allow power to stabilize
 
@@ -22,6 +27,7 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(50);
   Wire.begin();
+  state_machine.init();
 }
 
 void loop() {

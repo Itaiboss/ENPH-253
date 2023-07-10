@@ -20,5 +20,5 @@ void sendLog(const char* log_tag, const char* formatted_text,...) {
   va_start(arg, formatted_text);
   vsnprintf(log_buffer, LOG_BUFF_LEN, formatted_text, arg);
   va_end(arg);
-  Serial.println(log_buffer);
+  Serial.print(log_buffer);
 }
