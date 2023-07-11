@@ -15,7 +15,6 @@
 #include <state_machine.h>
 #include <logs.h>
 #include <pid.h>
-#define IR_READ PA0    //ir_l read pin
 
 #pragma once
 
@@ -36,7 +35,6 @@ void setup() {
 }
 
 void loop() {
-  CONSOLE_LOG(LOG_TAG,"IR value:%i",analogRead(IR_READ));
   delay(500);
   //CONSOLE_LOG(LOG_TAG, "%d", PID());
   //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
