@@ -45,7 +45,7 @@ class StateMachine {
      * 
      * @return state as a string
      */
-    std::string StateMachine::getStateString(StateMachine::state);
+    std::string getStateString(StateMachine::state);
 
     /**
      * @brief Returns the next state of the device
@@ -60,7 +60,12 @@ class StateMachine {
      */
     void determineState();
 
- private:
+    state tapeFollowState();
+
+    state irState();
+    state errorState();
+    state initState();
+    private:
     // Previous, current and next state trackers
     volatile state prev_state;
     volatile state curr_state;
