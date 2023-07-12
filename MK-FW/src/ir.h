@@ -4,3 +4,5 @@
  *
  *  @copyright Copyright ENPH253 (c) 2023
  */
+
+void ir_init();
