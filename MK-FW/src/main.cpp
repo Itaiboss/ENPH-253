@@ -11,7 +11,6 @@
  */
 #include <stdint.h>
 #include <Wire.h>
-#include <Adafruit_SSD1306.h>
 #include <state_machine.h>
 #include <logs.h>
 #include <pid.h>

@@ -29,7 +29,7 @@ int counter = 0;
 uint32_t cursor = 0;
 
 
-ir_init(){
+int ir_init(){
     // fills the sin array with the values of a 1 khZ. 
   for (int j = 0; j < NUM_SAMPLES; j++) {
     onek[j] = sin((double)TWO_PI * 1000 * pow(10,-6) * j);
