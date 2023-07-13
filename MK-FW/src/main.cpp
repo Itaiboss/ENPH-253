@@ -15,6 +15,7 @@
 #include <state_machine.h>
 #include <logs.h>
 #include <pid.h>
+#include <ir.h>
 
 #pragma once
 
@@ -22,20 +23,24 @@ static const char* LOG_TAG = "MAIN";
 
 #define SERVO PB_0
 
+
 void setup() {
   StateMachine state_machine;
   delay(100);  // allow power to stabilize
 
   // if anything writes to these before started, it will crash.
   Serial.begin(9600);
-  Serial.setTimeout(50);
+  Serial.setTimeout(100);
+  pidInit();
   Wire.begin();
   state_machine.init();
-  Serial.println("Starting");
 }
+uint32_t tape_r;
+uint32_t tape_l;
 
 void loop() {
-  delay(500);
-  //CONSOLE_LOG(LOG_TAG, "%d", PID());
-  //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
+  //PID();
+  //ir_sample();
+  //delay(100);
+  pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 }
