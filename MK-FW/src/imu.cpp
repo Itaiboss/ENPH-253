@@ -4,11 +4,13 @@
 #include <Adafruit_SSD1306.h>
  
 const int MPU = 0x68;
-int16_t AcX, AcY, AcZ;
+int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
 const int thresh = 7000;
-int16_t lastX, lastY, lastZ;
-int16_t diffX, diffY, diffZ = -1;
-int16_t offsetX, offsetY, offsetZ = 0;
+int16_t lastAcX, lastAcY, lastAcZ;
+int16_t lastGyX, lastGyY, lastGyZ;
+int16_t diffAcX, diffAcY, diffAcZ = -1;
+int16_t offsetAcX, offsetAcY, offsetAcZ = 0;
+int16_t offsetGyX, offsetGyY, offsetGyZ = 0;
 int minVal=265;
 int maxVal=402;
 double x;
@@ -37,28 +39,35 @@ AcX=(Wire.read()<<8|Wire.read());
 AcY=(Wire.read()<<8|Wire.read());
 AcZ=(Wire.read()<<8|Wire.read());
 
-if(diffX == -1){
-    diffX = 0;
-    diffY = 0;
-    diffZ = 0;
+if(diffAcX == -1){
+    diffAcX = 0;
+    diffAcY = 0;
+    diffAcZ = 0;
 }
 else{
-diffX = abs(AcX - lastX);
-diffY = abs(AcY - lastY);
-diffZ = abs(AcZ - lastZ);
+diffAcX = abs(AcX - lastAcX);
+diffAcY = abs(AcY - lastAcY);
+diffAcZ = abs(AcZ - lastAcZ);
 }
 
-if(diffX > thresh || diffY > thresh || diffZ > thresh){
+if(diffAcX > thresh || diffAcY > thresh || diffAcZ > thresh){
     returnVal = true;
 }
 
-lastX = AcX;
-lastY = AcY;
-lastZ = AcZ;
+Wire.beginTransmission(MPU);
+Wire.write(0x43);
+Wire.endTransmission(false);
+Wire.requestFrom(MPU,6,true);
+GyX=(Wire.read()<<8|Wire.read());
+GyY=(Wire.read()<<8|Wire.read());
+GyZ=(Wire.read()<<8|Wire.read());
 
-Serial.println(AcX);
-Serial.println(AcY);
-Serial.println(AcZ);
+lastAcX = AcX;
+lastAcY = AcY;
+lastAcZ = AcZ;
+lastGyX = GyX;
+lastGyY = GyY;
+lastGyZ = GyZ;
  
 delay(1000);
 
@@ -67,24 +76,23 @@ return returnVal;
 
 void imuZero(){
 
-    Wire.beginTransmission(MPU);
-    Wire.write(0x3B);
-    Wire.endTransmission(false);
-    Wire.requestFrom(MPU,6,true);
-    offsetX=(Wire.read()<<8|Wire.read());
-    offsetY=(Wire.read()<<8|Wire.read());
-    offsetZ=(Wire.read()<<8|Wire.read());
+    offsetAcX=lastAcX;
+    offsetAcY=lastAcY;
+    offsetAcZ=lastAcZ;
+    offsetGyX=lastGyX;
+    offsetGyY=lastGyY;
+    offsetGyZ=lastGyZ;
 
 }
 
 void imuGetPosition(){
+
+    int xAng = map(lastAcX,minVal,maxVal,-90,90);
+    int yAng = map(lastAcY,minVal,maxVal,-90,90);
+    int zAng = map(lastAcZ,minVal,maxVal,-90,90);
     
-    int xAng = map(lastX,minVal,maxVal,-90,90);
-    int yAng = map(lastY,minVal,maxVal,-90,90);
-    int zAng = map(lastZ,minVal,maxVal,-90,90);
-    
-    x = RAD_TO_DEG * (atan2(-yAng, -zAng)+PI);
-    y = RAD_TO_DEG * (atan2(-xAng, -zAng)+PI);
-    z = RAD_TO_DEG * (atan2(-yAng, -xAng)+PI);
+    x= RAD_TO_DEG * (atan2(-yAng, -zAng)+PI);
+    y= RAD_TO_DEG * (atan2(-xAng, -zAng)+PI);
+    z= RAD_TO_DEG * (atan2(-yAng, -xAng)+PI);
 
 }
