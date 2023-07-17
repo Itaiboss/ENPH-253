@@ -7,15 +7,13 @@ const int MPU = 0x68;
 int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
 const int thresh = 7000;
 int16_t lastAcX, lastAcY, lastAcZ;
-int16_t lastGyX, lastGyY, lastGyZ;
 int16_t diffAcX, diffAcY, diffAcZ = -1;
-int16_t offsetAcX, offsetAcY, offsetAcZ = 0;
-int16_t offsetGyX, offsetGyY, offsetGyZ = 0;
+int16_t offsetRollVelocity, offsetPitchVelocity, offsetYawVelocity;
+int16_t offsetRoll, offsetPitch, offsetYaw;
+int16_t roll, pitch, yaw;
+int16_t rollVelocity, pitchVelocity, yawVelocity;
 int minVal=265;
 int maxVal=402;
-double x;
-double y;
-double z;
  
 void imuInit(){
 
@@ -27,6 +25,7 @@ Wire.endTransmission(true);
 Serial.begin(9600);
 
 }
+
 bool isOnRocks(){
 
 bool returnVal = false;
@@ -35,9 +34,9 @@ Wire.beginTransmission(MPU);
 Wire.write(0x3B);
 Wire.endTransmission(false);
 Wire.requestFrom(MPU,14,true);
-AcX=(Wire.read()<<8|Wire.read());
-AcY=(Wire.read()<<8|Wire.read());
-AcZ=(Wire.read()<<8|Wire.read());
+AcX=(Wire.read()<<8|Wire.read()) ;
+AcY=(Wire.read()<<8|Wire.read()) ;
+AcZ=(Wire.read()<<8|Wire.read()) ;
 
 if(diffAcX == -1){
     diffAcX = 0;
@@ -65,34 +64,53 @@ GyZ=(Wire.read()<<8|Wire.read());
 lastAcX = AcX;
 lastAcY = AcY;
 lastAcZ = AcZ;
-lastGyX = GyX;
-lastGyY = GyY;
-lastGyZ = GyZ;
- 
-delay(1000);
 
 return returnVal;
 }
 
 void imuZero(){
 
-    offsetAcX=lastAcX;
-    offsetAcY=lastAcY;
-    offsetAcZ=lastAcZ;
-    offsetGyX=lastGyX;
-    offsetGyY=lastGyY;
-    offsetGyZ=lastGyZ;
+    // offsetRollVelocity=GyX;
+    // offsetPitchVelocity=GyY;
+    // offsetYawVelocity=GyZ;
+    offsetRoll = roll;
+    offsetPitch = pitch;
+    offsetYaw = yaw;
 
 }
 
-void imuGetPosition(){
+void getPosition(){
 
     int xAng = map(lastAcX,minVal,maxVal,-90,90);
     int yAng = map(lastAcY,minVal,maxVal,-90,90);
     int zAng = map(lastAcZ,minVal,maxVal,-90,90);
     
-    x= RAD_TO_DEG * (atan2(-yAng, -zAng)+PI);
-    y= RAD_TO_DEG * (atan2(-xAng, -zAng)+PI);
-    z= RAD_TO_DEG * (atan2(-yAng, -xAng)+PI);
+    roll = (RAD_TO_DEG * (atan2(-yAng, -zAng)+PI));
+    pitch = (RAD_TO_DEG * (atan2(-xAng, -zAng)+PI));
+    yaw = (RAD_TO_DEG * (atan2(-yAng, -xAng)+PI));
 
+}
+
+int16_t getRoll(){
+    return roll - offsetRoll;
+}
+
+int16_t getPitch(){
+    return pitch - offsetPitch;
+}
+
+int16_t getYaw(){
+    return yaw - offsetYaw;
+}
+
+int16_t getRollVelocity(){
+    return rollVelocity - offsetRollVelocity;
+}
+
+int16_t getPitchVelocity(){
+    return pitchVelocity - offsetPitchVelocity;
+}
+
+int16_t getYawVelocity(){
+    return yawVelocity - offsetYawVelocity;
 }

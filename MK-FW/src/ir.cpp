@@ -40,11 +40,7 @@ int ir_init(){
 }
 
 
-void loop() {
-
-
-  
- 
+void sample() {
   // if the read period has passed since the last check -> enter body
   if (micros() - adc_last_read >= ADC_READ_PERIOD) {
     

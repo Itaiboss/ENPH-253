@@ -14,10 +14,12 @@
 #include <state_machine.h>
 #include <logs.h>
 #include <pid.h>
+#include <imu.h>
 
 #pragma once
 
 static const char* LOG_TAG = "MAIN";
+int testVal = 0;
 
 #define SERVO PB_0
 
@@ -30,11 +32,23 @@ void setup() {
   Serial.setTimeout(50);
   Wire.begin();
   state_machine.init();
+  imuInit();
   Serial.println("Starting");
 }
 
 void loop() {
   delay(500);
+  if(testVal % 5 == 0){
+    imuZero();
+    CONSOLE_LOG(LOG_TAG, "zeroed");
+  }
+  bool rock = isOnRocks();
+  getPosition();
+  CONSOLE_LOG(LOG_TAG, "Current position: %i, %i, %i ", getRoll(), getPitch(), getYaw());
+  CONSOLE_LOG(LOG_TAG, "Current velocity: %i, %i, %i ", getRollVelocity(), getPitchVelocity(), getYawVelocity());
+  CONSOLE_LOG(LOG_TAG, "count: %i", testVal);
+  testVal++;
+  CONSOLE_LOG(LOG_TAG,"On rocks: %d",rock);
   //CONSOLE_LOG(LOG_TAG, "%d", PID());
   //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 }
