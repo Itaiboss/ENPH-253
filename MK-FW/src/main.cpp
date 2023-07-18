@@ -11,20 +11,46 @@
  */
 #include <stdint.h>
 #include <Wire.h>
-#include <Adafruit_SSD1306.h>
 #include <state_machine.h>
 #include <logs.h>
 #include <pid.h>
 #include <ir.h>
+#include <MCP4131.h>
+#include <SPI.h>
 
-#pragma once
+
 
 static const char* LOG_TAG = "MAIN";
 
 #define SERVO PB_0
+#define MOTOR_A PA_7
+#define MOTOR_B PA_6
+#define CLK PB3
+#define MISO PB4
+#define MOSI PB5
+#define CS PA15
+#define I2C_SDA PB7
+#define I2C_SCL PB6
 
+
+uint32_t last = 0;
+uint32_t samples[1000];
+uint32_t i = 0; 
+uint32_t num = 0;
+SPISettings SPI_settings(250000, MSBFIRST, SPI_MODE0);
+MCP4131 digi_pot(CS);
 
 void setup() {
+  pinMode(CS, OUTPUT);
+  pinMode(MOSI, OUTPUT);
+  pinMode(MISO, INPUT);
+  pinMode(CLK, OUTPUT);
+  SPI.setMISO(MISO);
+  SPI.setMOSI(MOSI);
+  SPI.setSCLK(CLK);
+  Wire.setSDA(I2C_SDA);
+  Wire.setSCL(I2C_SCL);
+  Wire.begin();
   StateMachine state_machine;
   delay(100);  // allow power to stabilize
 
@@ -32,15 +58,35 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(100);
   pidInit();
-  Wire.begin();
   state_machine.init();
+  last = micros();
+  ir_init();
 }
-uint32_t tape_r;
-uint32_t tape_l;
 
 void loop() {
+  // samples[i] = micros()-last;
+  // last = micros();
+  // i++;
+  // if (i >=1000 && num<4){ 
+  //   for (int j = 0 ; j< 1000 ; j++) {
+  //     CONSOLE_LOG(LOG_TAG,"%i",samples[j]);
+  //   }
+  //   i=0;
+  //   num++;
+  // }
   //PID();
-  //ir_sample();
-  //delay(100);
-  pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
+  for (int i = 0; i <= 128; i++) { // goes from 0 degrees to 180 degrees
+    // in steps of 1 degree
+    digi_pot.writeWiper(i);              // tell servo to go to position in variable 'pos'
+    ir_sample();
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
+  for (int i = 128; i >= 0; i--) { // goes from 180 degrees to 0 degrees              // tell servo to go to position in variable 'pos'
+    digi_pot.writeWiper(i);
+    ir_sample();
+    delay(15);                     // waits 15ms for the servo to reach the position
+  }
+  
+  //pwm_start(SERVO, 50, 275, RESOLUTION_12B_COMPARE_FORMAT);
+  //pwm_start(MOTOR_B, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
 }

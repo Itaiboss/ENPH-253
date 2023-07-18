@@ -40,7 +40,7 @@ uint32_t PID() {
     if (millis()> last_time + time_ms) {
         sense_r = digitalRead(TAPE_R);
         sense_l = digitalRead(TAPE_L);
-        CONSOLE_LOG(LOG_TAG,"TAPE L:%d TAPE R:%d", sense_l, sense_r);
+        //CONSOLE_LOG(LOG_TAG,"TAPE L:%d TAPE R:%d", sense_l, sense_r);
         int32_t error =0;
         if (sense_r == 0 && sense_l == 0) {
             if (last_l == 1) {
@@ -54,7 +54,7 @@ uint32_t PID() {
         else {
             error = lookup[sense_r][sense_l];
         }
-        CONSOLE_LOG(LOG_TAG,"%d",error);
+        //CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
         if (total_error >= max_control) {
             total_error = max_control;
@@ -63,7 +63,7 @@ uint32_t PID() {
         }
         d_error = error-last_error;
         control = kp*error + (ki*time_ms)*total_error + (kd/time_ms)*d_error+200;
-        CONSOLE_LOG(LOG_TAG,"%d",control);
+        //CONSOLE_LOG(LOG_TAG,"%d",control);
         if (control >= max_control) {
             control = max_control;
         } else if (control <= min_control) {
