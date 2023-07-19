@@ -1,14 +1,11 @@
 /**
  * @file      pid.cpp
- * @brief     ENPH 253 competition main 
+ * @brief     contains algorithm for PID control
  *
- * @copyright Copyright ENPH253 (c) 2023
- *
- * @author Itai Boss
- * @author Logan Underwoof
- * @author Imogen neil
- * @author Brooklynn Erikson
  */
 #include <stdint.h>
+#define TAPE_R PA12
+#define TAPE_L PA11
 
+void pidInit();
 uint32_t PID();

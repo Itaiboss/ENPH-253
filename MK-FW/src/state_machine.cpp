@@ -23,7 +23,7 @@ void StateMachine::init() {
     prev_state = UNKNOWN;
     curr_state = INIT;
     next_state = UNKNOWN;
-    CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
+    CONSOLE_LOG(LOG_TAG, "also Initialized the state machine");
 }
 
 StateMachine::state StateMachine::getCurrentState() {
