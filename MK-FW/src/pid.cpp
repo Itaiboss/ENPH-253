@@ -12,7 +12,7 @@
 
 static const char* LOG_TAG = "PID";
 
-double kp = 10;
+double kp = 20;
 double ki = 0;
 double kd = 0;
 uint32_t target;
@@ -29,8 +29,8 @@ int32_t last_error;
 int32_t d_error;
 int32_t max_control=300;
 int32_t min_control=220;
-int32_t integral_max=50;
-int32_t integral_min=50;
+int32_t integral_max=100;
+int32_t integral_min=100;
 const int32_t lookup[2][2]={{2,1}, {-1,0}}; // l,r
 
 void pidInit() {
@@ -64,7 +64,7 @@ uint32_t PID() {
             total_error = min_control;
         }
         d_error = error-last_error;
-        control = kp*error + (ki*time_ms)*total_error + (kd/time_ms)*d_error+260;
+        control = kp*error + (ki*time_ms)*total_error + (kd/time_ms)*d_error+290;
         if (control >= max_control) {
             control = max_control;
         } else if (control <= min_control) {

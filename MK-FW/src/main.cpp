@@ -22,8 +22,8 @@
 
 static const char* LOG_TAG = "MAIN";
 
-#define SERVO PB_0
-#define MOTOR_A PA_7
+#define SERVO PA_2
+#define MOTOR_A PA_3
 #define MOTOR_B PA_6
 #define CLK PB3
 #define MISO PB4
@@ -69,6 +69,7 @@ void setup() {
 }
 
 void loop() {
+  pwm_start(MOTOR_A, 1000, 2200, RESOLUTION_12B_COMPARE_FORMAT);
   // samples[i] = micros()-last;
   // last = micros();
   // i++;
@@ -91,18 +92,17 @@ void loop() {
   //   ir_sample();
   //   delay(15);                     // waits 15ms for the servo to reach the position
   // }
-  uint32_t high = 340;
+  uint32_t high = 320;
   uint32_t low = 200;
-  //pwm_start(MOTOR_A, 1000, 2200, RESOLUTION_12B_COMPARE_FORMAT);
-  // for (int i = low ; i < high; i+=1) {
-  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
-  //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
-  //   delay(30);
-  // }
-  // for (int i = high ; i > low; i-=1) {
-  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
-  //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
-  //   delay(30);
-  // }
-  pwm_start(SERVO, 50, 260, RESOLUTION_12B_COMPARE_FORMAT);
+  for (int i = low ; i < high; i+=1) {
+    pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+    CONSOLE_LOG(LOG_TAG, "servo:%i",i);
+    delay(30);
+  }
+  for (int i = high ; i > low; i-=1) {
+    pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+    CONSOLE_LOG(LOG_TAG, "servo:%i",i);
+    delay(30);
+  }
+  //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 }
