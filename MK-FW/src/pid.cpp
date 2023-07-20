@@ -31,7 +31,7 @@ int32_t max_control=320;
 int32_t min_control=240;
 int32_t integral_max=100;
 int32_t integral_min=100;
-const int32_t lookup[2][2]={{-1,0}, {3,1}}; // r,l
+const int32_t lookup[2][2]={{3,1}, {-1,0}}; // l,r
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
@@ -55,7 +55,7 @@ uint32_t PID() {
         }
         else {
             error = lookup[sense_r][sense_l];
-        }
+        }  
         CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
         if (total_error >= max_control) {
