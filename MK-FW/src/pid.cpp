@@ -12,8 +12,8 @@
 
 static const char* LOG_TAG = "PID";
 
-double kp = 20;
-double ki = 0;
+double kp = 30;
+double ki = 0.001;
 double kd = 0;
 uint32_t target;
 int32_t control;
@@ -27,11 +27,11 @@ int32_t error;
 int32_t total_error;
 int32_t last_error;
 int32_t d_error;
-int32_t max_control=300;
-int32_t min_control=220;
+int32_t max_control=320;
+int32_t min_control=240;
 int32_t integral_max=100;
 int32_t integral_min=100;
-const int32_t lookup[2][2]={{2,1}, {-1,0}}; // l,r
+const int32_t lookup[2][2]={{-1,0}, {3,1}}; // r,l
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
@@ -56,7 +56,7 @@ uint32_t PID() {
         else {
             error = lookup[sense_r][sense_l];
         }
-        //CONSOLE_LOG(LOG_TAG,"%d",error);
+        CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
         if (total_error >= max_control) {
             total_error = max_control;
