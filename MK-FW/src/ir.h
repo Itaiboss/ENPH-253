@@ -20,6 +20,7 @@ uint32_t ir_PID();
 
 uint32_t ir_follow_steering_value();
 
-
+double get_error(uint32_t right, uint32_t left);
+double normalize_magnitude(double total, uint32_t ampltitude);
 
 void resetMaximums();

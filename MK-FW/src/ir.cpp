@@ -15,6 +15,8 @@ double right_ir_reading[NUM_SAMPLES] = {0};
 double imaginary[NUM_SAMPLES] = {0};
 uint32_t valueHistory[ROLLING_AVERAGE_NUMBER] = {0};
 uint32_t signalAmplitudeCutOff = 20;
+uint32_t bottom_frequency_cutoff = 950;
+uint32_t top_frequency_cutoff = 1050;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -26,12 +28,12 @@ uint32_t right_min_val = 1024;
 
 // the following variables are used to track the 
 // different prop, derivative, and integral error terms. 
-int32_t current_error = 0;
-int32_t last_error_IR = 0;
-int32_t total_error_IR = 0;
+double current_error = 0;
+double last_error_IR = 0;
+double total_error_IR = 0;
 
 // the following are coefficents to control the PID logic 
-double prop_coef = 1;
+double prop_coef = 100;
 double derivative_coef = 0;
 double integral_coef = 0;
 
@@ -84,63 +86,114 @@ uint32_t ir_PID() {
     }
     sample_time += micros() - timer;
   }
+
   sample_time = sample_time / NUM_SAMPLES;
   // gets the left frequency.
-  arduinoFFT FFT = arduinoFFT(left_ir_reading, imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));
-  FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
-  FFT.Compute(FFT_FORWARD); /* Compute FFT */
-  FFT.ComplexToMagnitude(); /* Compute magnitudes */
-  double left_frequency = FFT.MajorPeak();
+  arduinoFFT FFT_left = arduinoFFT(left_ir_reading, imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));
+  FFT_left.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
+  FFT_left.Compute(FFT_FORWARD); /* Compute FFT */
+  FFT_left.ComplexToMagnitude(); /* Compute magnitudes */
+  double left_frequency = FFT_left.MajorPeak();
 
   // gets the right frequency
-  FFT = arduinoFFT(right_ir_reading, imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));
-  FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
-  FFT.Compute(FFT_FORWARD); /* Compute FFT */
-  FFT.ComplexToMagnitude(); /* Compute magnitudes */
-  double right_frequency = FFT.MajorPeak();
+  arduinoFFT FFT_right = arduinoFFT(right_ir_reading, imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));
+  FFT_right.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
+  FFT_right.Compute(FFT_FORWARD); /* Compute FFT */
+  FFT_right.ComplexToMagnitude(); /* Compute magnitudes */
+  double right_frequency = FFT_right.MajorPeak();
 
   
-  
-  if ((left_frequency > 950) && (left_frequency < 1100)){
-    uint32_t left_amplitude = left_max_val - left_min_val;
-    
-    if (left_amplitude > signalAmplitudeCutOff) {
-      current_error += left_amplitude;
-    }
-  } 
+  uint32_t left_amplitude = left_max_val - left_min_val;
+  uint32_t right_amplitude = right_max_val - right_min_val;
 
-  if((right_frequency > 950) && (right_frequency < 1100)) {
-    uint32_t right_amplitude = right_max_val - right_min_val;
-    if (right_amplitude > signalAmplitudeCutOff) {
-      current_error -= right_amplitude;
-    }
+
+  if (left_frequency < bottom_frequency_cutoff || left_frequency > top_frequency_cutoff) {
+    left_amplitude = 0;
+  }
+  if (right_frequency < bottom_frequency_cutoff || right_frequency > top_frequency_cutoff) {
+    right_amplitude = 0;
   }
 
+  if (left_amplitude < signalAmplitudeCutOff) {
+    left_amplitude = 0;
+  }
+
+  if (right_amplitude < signalAmplitudeCutOff) {
+    right_amplitude = 0;
+  }
+
+  current_error = get_error(right_amplitude, left_amplitude);
+
+  CONSOLE_LOG(LOG_TAG, "ERROR: %i", (int) (current_error * 100));
+
   uint32_t total_time = millis() - time_marker;
-
-
   double derivative_error = (current_error - last_error_IR);
-
   total_error_IR += total_time * current_error;
-
-
   last_error_IR = current_error;
-  
-  
+
   resetMaximums();
   uint32_t turn_value = middle + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
-  // if (turn_value < max_left_turn) {
-  //   return max_left_turn;
-  // }
-  // if (turn_value > max_right_turn) {
-  //   return max_right_turn;
-  // }
+  if (turn_value < max_left_turn) {
+    return max_left_turn;
+  }
+  if (turn_value > max_right_turn) {
+    return max_right_turn;
+  }
   return turn_value;
 }
 
+uint32_t cursor = 0;
+
 uint32_t ir_follow_steering_value() {
+  valueHistory[cursor] = ir_PID();
+
+  if (cursor == ROLLING_AVERAGE_NUMBER - 1) {
+    cursor = 0;
+  } else {
+    cursor++;
+  }
+  uint32_t total = 0;
+  for (int i = 0; i < ROLLING_AVERAGE_NUMBER; i++) {
+    total += valueHistory[i];
+  }
+
+  return total / ROLLING_AVERAGE_NUMBER;
+}
+
+
+/**
+ * @brief  Gets the error where positive refers to the left direction and negative to the left direction. 
+ * @note   
+ * @param  right: The amplitude of the right IR detector.
+ * @param  left: The amplitude of the left IR detector. 
+ * @retval A double containg the value of the error. 
+ */
+
+double get_error(uint32_t right, uint32_t left) {
+  // CONSOLE_LOG(LOG_TAG, "right: %i, left: %i", (int) right, (int) left);
+  double total = right + left;
+
+  double normalized_right = normalize_magnitude(total, right);
+  double normalized_left = normalize_magnitude(total, left);
+
+
+  return normalized_left + normalized_right;
   
 }
+
+/**
+ * @brief  Normalizes the magnitude based on the distance to provide a different maginitude.
+ * @note   
+ * @param  total: the total magnitude of the left and right waves
+ * @param  ampltitude: The magnitude if the wave that we care about. 
+ * @retval A unsigned int value that is the normalized value. 
+ */
+double normalize_magnitude(double total, uint32_t ampltitude) {
+  CONSOLE_LOG(LOG_TAG, "total: %i, ampltiude: %i, divided term: %i", (int) total, (int) ampltitude, (int) (ampltitude / total * 100));
+  return ampltitude / total;
+}
+
+
 
 void resetMaximums() {
   left_max_val = 0;

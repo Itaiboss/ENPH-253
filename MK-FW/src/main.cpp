@@ -105,8 +105,9 @@ void loop() {
   //   delay(30);
   // }
   
-  uint32_t turningCommand = ir_PID();
+  uint32_t turningCommand = ir_follow_steering_value();
   CONSOLE_LOG(LOG_TAG, "command is %i", turningCommand);
   pwm_start(SERVO, 50, turningCommand, RESOLUTION_12B_COMPARE_FORMAT);
   
+
 }
