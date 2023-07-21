@@ -5,7 +5,11 @@
  *  @copyright Copyright ENPH253 (c) 2023
  */
 #include <state_machine.h>
+#include <arduino.h>
 #include <logs.h>
+#include <pins.h>
+#include <stdint.h>
+#include <pid.h>
 #pragma once
 
 static const char* LOG_TAG = "STATE_MACHINE";
@@ -81,9 +85,11 @@ void StateMachine::determineState() {
 }
 
 StateMachine::state tapeFollowState() {
+    pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 
 }
 StateMachine::state irState() {
+    
 
 }
 StateMachine::state errorState() {
