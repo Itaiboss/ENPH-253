@@ -15,61 +15,32 @@
 #include <logs.h>
 #include <pid.h>
 #include <ir.h>
-#include <MCP4131.h>
-#include <SPI.h>
+#include <pins.h>
 
 
 
 static const char* LOG_TAG = "MAIN";
-
-#define SERVO PA_2
-#define MOTOR_A PA_3
-#define MOTOR_B PA_6
-#define CLK PB3
-#define MISO PB4
-#define MOSI PB5
-#define CS PA15
-#define I2C_SDA PB7
-#define I2C_SCL PB6
-
-
-uint32_t last = 0;
-uint32_t samples[1000];
-uint32_t i = 0; 
-uint32_t num = 0;
-SPISettings SPI_settings(250000, MSBFIRST, SPI_MODE0);
-MCP4131 digi_pot(CS);
+StateMachine state_machine;
 
 void setup() {
-  pinMode(CS, OUTPUT);
-  pinMode(MOSI, OUTPUT);
-  pinMode(MISO, INPUT);
-  pinMode(CLK, OUTPUT);
-  //Wire.begin(I2C_SDA,I2C_SCL);
+  Wire.begin(I2C_SDA,I2C_SCL);
   Wire.setSDA(I2C_SDA);
   Wire.setSCL(I2C_SCL);
-  //Wire.begin();
-  //Wire.end();
-  //Wire.endTransmission();
-  //Wire.setClock(100000);
-  SPI.setMISO(MISO);
-  SPI.setMOSI(MOSI);
-  SPI.setSCLK(CLK);
-  StateMachine state_machine;
   delay(100);  // allow power to stabilize
-
   // if anything writes to these before started, it will crash.
   Serial.begin(9600);
   Serial.setTimeout(100);
-  pidInit();
   state_machine.init();
-  last = micros();
+  pidInit();
   ir_init();
-  pwm_start(SERVO, 50, 260, RESOLUTION_12B_COMPARE_FORMAT);
 }
 
 void loop() {
+<<<<<<< Updated upstream
   pwm_start(MOTOR_A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
+=======
+  state_machine.determineState();
+>>>>>>> Stashed changes
   // samples[i] = micros()-last;
   // last = micros();
   // i++;
@@ -92,6 +63,7 @@ void loop() {
   //   ir_sample();
   //   delay(15);                     // waits 15ms for the servo to reach the position
   // }
+<<<<<<< Updated upstream
   // uint32_t high = 310;
   // uint32_t low = 240;
   // for (int i = low ; i < high; i+=1) {
@@ -106,3 +78,23 @@ void loop() {
   // }
   pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 }
+=======
+  // uint32_t high = 400;
+  // uint32_t low = 100;
+  // for (int i = low ; i < high; i+=1) {
+  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+  // CONSOLE_LOG(LOG_TAG, "servo:%i",270);
+  //   delay(15);
+  // }
+  // delay(1000);
+  // for (int i = high ; i > low; i-=1) {
+  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+  //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
+  //   delay(15);
+  // }
+  // delay(1000);
+  
+  // //pwm_start(MOTOR_A, 1000, (abs((int32_t)(steer-270))+100)/100*3000, RESOLUTION_12B_COMPARE_FORMAT);
+   //pwm_start(MOTOR_A, 1000,2500, RESOLUTION_12B_COMPARE_FORMAT);
+}
+>>>>>>> Stashed changes
