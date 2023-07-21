@@ -6,7 +6,6 @@
 #define SIZE 50
 const int MPU = 0x68;
 int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
-int16_t r, p, y, rV, pV, yV;
 const int thresh = 7000;
 int16_t lastAcX, lastAcY, lastAcZ;
 int16_t diffAcX, diffAcY, diffAcZ = -1;
@@ -82,6 +81,8 @@ void imuZero(){
 }
 
 void getPosition(){
+
+    int16_t r, p, y, rV, pV, yV = 0;
 
     for(int i = 0; i < SIZE; i++){
         isOnRocks();

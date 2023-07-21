@@ -39,12 +39,12 @@ void setup() {
 }
 
 void loop() {
-  if(ZERO == HIGH){
-    imuZero();
-    CONSOLE_LOG(LOG_TAG, "zeroed");
-  }
-  bool rock = isOnRocks();
-  //getPosition();
+  // if(ZERO == HIGH){
+  //   imuZero();
+  //   CONSOLE_LOG(LOG_TAG, "zeroed");
+  // }
+  //bool rock = isOnRocks();
+  getPosition();
   CONSOLE_LOG(LOG_TAG, "Roll:%i, Pitch:%i, Yaw:%i ", getRoll(), getPitch(), getYaw());
   //CONSOLE_LOG(LOG_TAG, "Current velocity: %i, %i, %i ", getRollVelocity(), getPitchVelocity(), getYawVelocity());
   //CONSOLE_LOG(LOG_TAG, "count: %i", testVal);
