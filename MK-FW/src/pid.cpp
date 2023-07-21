@@ -8,18 +8,14 @@
 #include <stdint.h>
 #include <arduino.h>
 #include <logs.h>
+#include <pins.h>
 #pragma once
 
 static const char* LOG_TAG = "PID";
 
 double kp = 30;
-<<<<<<< Updated upstream
-double ki = 0.001;
-double kd = 0;
-=======
 double ki = 0;//0.005;
 double kd = 0;//2;
->>>>>>> Stashed changes
 uint32_t target;
 int32_t control;
 uint32_t sense_r;
@@ -32,19 +28,11 @@ int32_t error;
 int32_t total_error;
 int32_t last_error;
 int32_t d_error;
-<<<<<<< Updated upstream
-int32_t max_control=320;
-int32_t min_control=240;
-int32_t integral_max=100;
-int32_t integral_min=100;
-const int32_t lookup[2][2]={{-1,0}, {3,1}}; // r,l
-=======
 int32_t max_control=390;
 int32_t min_control=100;
 int32_t integral_max=250;
 int32_t integral_min=250;
 const double lookup[2][2]={{5,-1}, {1,0}}; // l,r
->>>>>>> Stashed changes
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);

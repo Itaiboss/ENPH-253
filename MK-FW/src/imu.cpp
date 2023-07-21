@@ -1,7 +1,5 @@
 #include <Wire.h>
 #include <math.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
  
 #define SIZE 50
 const int MPU = 0x68;
@@ -70,18 +68,15 @@ return returnVal;
 }
 
 void imuZero(){
-
     offsetRollVelocity=GyX;
     offsetPitchVelocity=GyY;
     offsetYawVelocity=GyZ;
     offsetRoll = roll;
     offsetPitch = pitch;
     offsetYaw = yaw;
-
 }
 
 void getPosition(){
-
     int16_t r, p, y, rV, pV, yV = 0;
 
     for(int i = 0; i < SIZE; i++){

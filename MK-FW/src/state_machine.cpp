@@ -10,6 +10,7 @@
 #include <pins.h>
 #include <stdint.h>
 #include <pid.h>
+#include <imu.h>
 #pragma once
 
 static const char* LOG_TAG = "STATE_MACHINE";
@@ -46,6 +47,12 @@ std::string StateMachine::getStateString(StateMachine::state) {
         case ERROR:
             state = "ERROR";
             break;
+        case START:
+            state = "START";
+            break;
+        case JUMP:
+            state = "JUMP";
+            break;
         case UNKNOWN:
             state = "UNKNOWN";
             break;
@@ -68,6 +75,12 @@ void StateMachine::determineState() {
         case ERROR:
             next_state = errorState();
             break;
+        case JUMP:
+            next_state = jumpState();
+            break;
+        case START:
+            next_state = startState();
+            break;
         case UNKNOWN:
         case INIT:
         default:
@@ -83,18 +96,26 @@ void StateMachine::determineState() {
         curr_state = next_state;
     }
 }
+StateMachine::state initState() {
+
+}
+StateMachine::state startState() {
+
+}
+
+StateMachine::state irState() {
+
+}
 
 StateMachine::state tapeFollowState() {
     pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 
 }
-StateMachine::state irState() {
-    
+
+StateMachine::state jumpState() {
 
 }
+
 StateMachine::state errorState() {
-
-}
-StateMachine::state initState() {
 
 }

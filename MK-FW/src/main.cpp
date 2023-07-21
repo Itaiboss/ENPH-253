@@ -16,14 +16,11 @@
 #include <pid.h>
 #include <ir.h>
 #include <pins.h>
-
 #include <imu.h>
 
 
 static const char* LOG_TAG = "MAIN";
-int testVal = 0;
 StateMachine state_machine;
-#define ZERO PB4
 
 void setup() {
   Wire.begin(I2C_SDA,I2C_SCL);

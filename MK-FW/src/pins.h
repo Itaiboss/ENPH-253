@@ -19,3 +19,6 @@
 #define CS PA15
 #define I2C_SDA PB7
 #define I2C_SCL PB6
+#define ZERO PB4
+#define TAPE_R PA12
+#define TAPE_L PA11

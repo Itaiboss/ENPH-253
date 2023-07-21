@@ -13,8 +13,10 @@ class StateMachine {
     typedef enum {
         UNKNOWN                 =   0,
         INIT                    =   1,
+        START                   =   2,
         TAPE_FOLLOW             = 100,
         IR_FOLLOW               = 101,
+        JUMP                    = 102,
         ERROR                   = 900,
     } state;
 
@@ -65,6 +67,8 @@ class StateMachine {
     state irState();
     state errorState();
     state initState();
+    state startState();
+    state jumpState();
     private:
     // Previous, current and next state trackers
     volatile state prev_state;
