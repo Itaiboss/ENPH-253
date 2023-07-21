@@ -3,8 +3,10 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
  
+#define SIZE 50
 const int MPU = 0x68;
 int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
+int16_t r, p, y, rV, pV, yV;
 const int thresh = 7000;
 int16_t lastAcX, lastAcY, lastAcZ;
 int16_t diffAcX, diffAcY, diffAcZ = -1;
@@ -70,9 +72,9 @@ return returnVal;
 
 void imuZero(){
 
-    // offsetRollVelocity=GyX;
-    // offsetPitchVelocity=GyY;
-    // offsetYawVelocity=GyZ;
+    offsetRollVelocity=GyX;
+    offsetPitchVelocity=GyY;
+    offsetYawVelocity=GyZ;
     offsetRoll = roll;
     offsetPitch = pitch;
     offsetYaw = yaw;
@@ -81,14 +83,28 @@ void imuZero(){
 
 void getPosition(){
 
-    int xAng = map(lastAcX,minVal,maxVal,-90,90);
-    int yAng = map(lastAcY,minVal,maxVal,-90,90);
-    int zAng = map(lastAcZ,minVal,maxVal,-90,90);
-    
-    roll = (RAD_TO_DEG * (atan2(-yAng, -zAng)+PI));
-    pitch = (RAD_TO_DEG * (atan2(-xAng, -zAng)+PI));
-    yaw = (RAD_TO_DEG * (atan2(-yAng, -xAng)+PI));
+    for(int i = 0; i < SIZE; i++){
+        isOnRocks();
+        int xAng = map(lastAcX,minVal,maxVal,-90,90);
+        int yAng = map(lastAcY,minVal,maxVal,-90,90);
+        int zAng = map(lastAcZ,minVal,maxVal,-90,90);
+        
+        r += (RAD_TO_DEG * (atan2(-yAng, -zAng)+PI));
+        p += (RAD_TO_DEG * (atan2(-xAng, -zAng)+PI));
+        y += (RAD_TO_DEG * (atan2(-yAng, -xAng)+PI));
 
+        rV += GyX;
+        pV += GyY;
+        yV += GyZ;
+    }
+
+    roll = r / SIZE;
+    pitch = p / SIZE;
+    yaw = y / SIZE;
+
+    rollVelocity = rV / SIZE;
+    pitchVelocity = pV / SIZE;
+    yawVelocity = yV / SIZE;
 }
 
 int16_t getRoll(){
