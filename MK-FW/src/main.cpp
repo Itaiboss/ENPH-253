@@ -65,7 +65,7 @@ void setup() {
   state_machine.init();
   last = micros();
   ir_init();
-  pwm_start(SERVO, 50, 260, RESOLUTION_12B_COMPARE_FORMAT);
+  pwm_start(SERVO, 50, 10, RESOLUTION_12B_COMPARE_FORMAT);
 }
 
 void loop() {
@@ -91,8 +91,8 @@ void loop() {
   //   ir_sample();
   //   delay(15);                     // waits 15ms for the servo to reach the position
   // }
-  uint32_t high = 340;
-  uint32_t low = 200;
+  // uint32_t high = 340;
+  // uint32_t low = 200;
   //pwm_start(MOTOR_A, 1000, 2200, RESOLUTION_12B_COMPARE_FORMAT);
   // for (int i = low ; i < high; i+=1) {
   //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
@@ -104,5 +104,9 @@ void loop() {
   //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
   //   delay(30);
   // }
-  pwm_start(SERVO, 50, 260, RESOLUTION_12B_COMPARE_FORMAT);
+  
+  uint32_t turningCommand = ir_PID();
+  CONSOLE_LOG(LOG_TAG, "command is %i", turningCommand);
+  pwm_start(SERVO, 50, turningCommand, RESOLUTION_12B_COMPARE_FORMAT);
+  
 }
