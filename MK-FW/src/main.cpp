@@ -22,8 +22,8 @@
 
 static const char* LOG_TAG = "MAIN";
 
-#define SERVO PB_0
-#define MOTOR_A PA_7
+#define SERVO PA_2
+#define MOTOR_A PA_3
 #define MOTOR_B PA_6
 #define CLK PB3
 #define MISO PB4
@@ -39,6 +39,7 @@ uint32_t i = 0;
 uint32_t num = 0;
 SPISettings SPI_settings(250000, MSBFIRST, SPI_MODE0);
 MCP4131 digi_pot(CS);
+uint32_t startTime = 0;
 
 void setup() {
   pinMode(CS, OUTPUT);
@@ -65,8 +66,12 @@ void setup() {
   state_machine.init();
   last = micros();
   ir_init();
-  pwm_start(SERVO, 50, 10, RESOLUTION_12B_COMPARE_FORMAT);
+  // pwm_start(SERVO, 50, 175, RESOLUTION_12B_COMPARE_FORMAT);
+  pwm_start(MOTOR_A, 1000, 4096, RESOLUTION_12B_COMPARE_FORMAT);
+  startTime = millis();
 }
+
+
 
 void loop() {
   // samples[i] = micros()-last;
@@ -91,9 +96,9 @@ void loop() {
   //   ir_sample();
   //   delay(15);                     // waits 15ms for the servo to reach the position
   // }
-  // uint32_t high = 340;
-  // uint32_t low = 200;
-  //pwm_start(MOTOR_A, 1000, 2200, RESOLUTION_12B_COMPARE_FORMAT);
+  // uint32_t high = 400;
+  // uint32_t low = 120;
+  
   // for (int i = low ; i < high; i+=1) {
   //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
   //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
@@ -104,10 +109,15 @@ void loop() {
   //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
   //   delay(30);
   // }
+
+
+
   
-  uint32_t turningCommand = ir_follow_steering_value();
-  CONSOLE_LOG(LOG_TAG, "command is %i", turningCommand);
-  pwm_start(SERVO, 50, turningCommand, RESOLUTION_12B_COMPARE_FORMAT);
+
+  // uint32_t turningCommand = ir_follow_steering_value();
+  // CONSOLE_LOG(LOG_TAG, "command is %i", turningCommand);
+  pwm_start(SERVO, 50, 278, RESOLUTION_12B_COMPARE_FORMAT);
+  
   
 
 }
