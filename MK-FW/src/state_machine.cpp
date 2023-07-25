@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <pid.h>
 #include <imu.h>
+#include <jumpState.h>
 #include <sonar.h>
 #pragma once
 
@@ -162,14 +163,58 @@ StateMachine::state StateMachine::tapeFollowState2() {
 
 }
 
+JumpState current_jump_state = onTape;
+
 StateMachine::state StateMachine::jumpState() {
 
+//     current_jump_state = preform(current_jump_state);
 
-}
+//     if (current_jump_state == onGround) {
+//         current_jump_state = onTape;
+//         return POST_JUMP;
+//     } 
+    
+//     return JUMP;
 
-StateMachine::state StateMachine::postJumpState() {
+// }
 
+// StateMachine::state StateMachine::postJumpState() {
+//     bool is_on_rocks = isOnRocks();
+//     getPosition();
 
+//     if(findSonar && getDistance() < MIN_SONAR_DIST){
+//         //cut motor, slow down
+//     }
+//     else if(findSonar && getDistance() < minDistance){
+//         //turn LEFT, turn on tape sensors to find tape
+//         //tape sensor shouldn't actually turn on until tape is detected somewhere, then it'll effect the steering
+//     }
+
+//     //else if(!IRdetected)
+//     {
+//         //for overshoot, going to fall off short edge of course
+//         if(!isPresent() && !rock){//front sonar
+//             //cut motor, reverse
+//         }
+//         //for angle too far right, going to fall off long edge by rocks
+//         else if(getYaw() > 10){
+//             //cut motor, reverse
+//         }
+//         else if(isPresent){
+//             //adjust turn to be slightly more centre
+//         }
+//         else{
+//             //turn LEFT
+//         }
+//     }
+//     //else if(IRdetected), ir follow state
+//     {
+//         //turn to centre and go to beacon
+//         if(rock){
+//             findSonar = true; //turn on front sonar
+//         }
+
+//     }
 }
 
 StateMachine::state StateMachine::errorState() {
