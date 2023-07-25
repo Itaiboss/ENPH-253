@@ -7,3 +7,4 @@
 
 void pidInit();
 uint32_t PID();
+bool tapeIsPresent();

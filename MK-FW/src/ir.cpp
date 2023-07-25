@@ -6,6 +6,7 @@
  */
 #include <ir.h>
 #include <logs.h>
+#include <control.h>
 #include <arduinoFFT.h>
 
 static const char* LOG_TAG = "IR";
@@ -18,13 +19,14 @@ double l_imaginary[NUM_SAMPLES];
 double l_e_imaginary[NUM_SAMPLES];
 double r_e_imaginary[NUM_SAMPLES];
 double r_imaginary[NUM_SAMPLES];
-uint32_t valueHistory[ROLLING_AVERAGE_NUMBER] = {0};
+
 uint32_t signalAmplitudeCutOff = 20;
 uint32_t bottom_frequency_cutoff = 950;
 uint32_t expected_frequency = 1000;
 uint32_t top_frequency_cutoff = 1150;
 bool doesNeedFrequencyCheck = true;
 uint32_t trials_since_last_check = 0;
+double middle = 0.5;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -49,9 +51,6 @@ double prop_coef = 100;
 double derivative_coef = 0;
 double integral_coef = 0;
 
-uint32_t max_left_turn = 190;
-uint32_t max_right_turn = 330;
-uint32_t middle = 267;
 
 uint32_t centeredWeight = 1;
 uint32_t outsideWeight = 4;
@@ -67,9 +66,7 @@ void ir_init() {
   doesNeedFrequencyCheck = true;
   trials_since_last_check = 0;
   // gives the default values for 
-  for (int i = 0; i < ROLLING_AVERAGE_NUMBER; i++) {
-    valueHistory[i] = middle;
-  }
+  
 }
 
 void reset_imaginary() {
@@ -156,7 +153,70 @@ bool isFrequencyValid(uint32_t frequency) {
 
 void PrintVector(double *vData, uint16_t bufferSize, uint8_t scaleType);
 
-uint32_t ir_PID() {
+
+bool IR_present() {
+
+  uint32_t timer;
+  uint32_t time_marker = millis();
+  uint32_t sample_time = 0;
+
+  for (int i = 0; i < NUM_SAMPLES; i++) {
+    timer = micros();
+    left_ir_reading[i] = analogRead(IR_READ_LEFT);
+    right_ir_reading[i] = analogRead(IR_READ_RIGHT);
+    extreme_left_ir_reading[i] = analogRead(IR_READ_EXTREME_LEFT);
+    extreme_right_ir_reading[i] = analogRead(IR_READ_EXTREME_RIGHT);
+
+    updateMinAndMax(left_ir_reading[i],
+     right_ir_reading[i],
+     extreme_left_ir_reading[i],
+     extreme_right_ir_reading[i]);
+    
+    sample_time += micros() - timer;
+  }
+
+  sample_time = sample_time / NUM_SAMPLES;
+  
+
+  
+  double left_frequency = getFrequency(left, sample_time);
+  double right_frequency = getFrequency(right, sample_time);
+  double left_extreme_frequency = getFrequency(extreme_left, sample_time);
+  double right_extreme_frequency = getFrequency(extreme_right, sample_time);
+
+
+  if (isFrequencyValid(left_frequency)) {
+    if (left_max_val - left_min_val > signalAmplitudeCutOff) {
+      resetMaximums();
+      return true;
+    }
+  }
+  if (isFrequencyValid(right_frequency)) {
+    if (right_max_val - right_min_val > signalAmplitudeCutOff) {
+      resetMaximums();
+      return true;
+    }
+  }
+  if (isFrequencyValid(left_extreme_frequency)) {
+    if (extreme_left_max_val - extreme_left_min_val > signalAmplitudeCutOff) {
+      resetMaximums();
+      return true;
+    }
+  }
+  if (isFrequencyValid(right_extreme_frequency)) {
+    if (extreme_right_max_val - extreme_right_min_val > signalAmplitudeCutOff) {
+      resetMaximums();
+      return true;
+    }
+  }
+
+  resetMaximums();
+
+  return false;
+
+}
+
+void ir_PID() {
   
   uint32_t timer;
   uint32_t time_marker = millis();
@@ -218,10 +278,16 @@ uint32_t ir_PID() {
     right_extreme_amplitude = extreme_right_max_val - extreme_right_min_val;
   }
 
+  if (left_amplitude == 0 && right_amplitude == 0 && left_extreme_ampltude == 0 && right_extreme_amplitude) {
+    set_motor_speed(MOTOR_SLOW_SPEED);
+  } else {
+    set_motor_speed(MOTOR_MAX_SPEED);
+  }
+
   // CONSOLE_LOG(LOG_TAG, "right: %i, left: %i", (int) right_amplitude, (int) left_amplitude);
  
 
-  current_error = get_error(right_amplitude, left_amplitude);
+  current_error = get_error(right_amplitude, left_amplitude, right_extreme_amplitude, left_extreme_ampltude);
 
   uint32_t total_time = millis() - time_marker;
   double derivative_error = (current_error - last_error_IR);
@@ -230,13 +296,7 @@ uint32_t ir_PID() {
 
   resetMaximums();
   uint32_t turn_value = middle + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
-  if (turn_value < max_left_turn) {
-    return max_left_turn;
-  }
-  if (turn_value > max_right_turn) {
-    return max_right_turn;
-  }
-  return turn_value;
+  set_steering(turn_value);
 }
 
 
@@ -275,6 +335,15 @@ double normalize_magnitude(double total, uint32_t ampltitude) {
   // CONSOLE_LOG(LOG_TAG, "total: %i, ampltiude: %i, divided term: %i", (int) total, (int) ampltitude, (int) (ampltitude / total * 100));
   return ampltitude / (total + 100);
 }
+
+
+void resetErrors() {
+  current_error = 0;
+  last_error_IR = 0;
+  total_error_IR = 0;
+}
+
+
 
 
 

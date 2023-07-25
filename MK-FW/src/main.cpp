@@ -43,13 +43,14 @@ void loop() {
   //state_machine.determineState();
   
   //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
-  uint32_t high = LEFT_MAX;
-  uint32_t low = RIGHT_MAX;
-  for (int i = high ; i > low; i-=2) {
-    pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
-    CONSOLE_LOG(LOG_TAG, "servo:%i",i);
-    delay(30);
-  }
-  delay(500);
+  // uint32_t high = LEFT_MAX;
+  // uint32_t low = RIGHT_MAX;
+  // for (int i = high ; i > low; i-=2) {
+  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+  //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
+  //   delay(30);
+  // }
+  // delay(500);
+  ir_PID();
   
 }
