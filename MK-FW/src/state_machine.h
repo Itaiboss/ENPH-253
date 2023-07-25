@@ -10,13 +10,14 @@ class StateMachine {
     /**
      * @brief Possible device states
      */
-    enum state{
+    enum state {
         UNKNOWN                 =   0,
         START                   =   1,
         TAPE_FOLLOW_1            = 100,
         TAPE_FOLLOW_2            = 101,
         IR_FOLLOW               = 103,
         JUMP                    = 104,
+        POST_JUMP               = 105,
         ERROR                   = 900,
     };
 
@@ -61,6 +62,7 @@ class StateMachine {
     state errorState();
     state initState();
     state startState();
+    state postJumpState();
     state jumpState();
     private:
     // Previous, current and next state trackers

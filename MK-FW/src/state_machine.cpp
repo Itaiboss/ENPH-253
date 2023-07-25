@@ -89,6 +89,8 @@ void StateMachine::determineState() {
         case JUMP:
             next_state = jumpState();
             break;
+        case POST_JUMP:
+            next_state = postJumpState();
         case UNKNOWN:
         default:
             next_state = startState();
@@ -148,6 +150,8 @@ StateMachine::state StateMachine::irState() {
 StateMachine::state StateMachine::tapeFollowState1() {
     pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 
+    // if detects jump style tape return jumpState and zero the IMU. 
+
 }
 
 StateMachine::state StateMachine::tapeFollowState2() {
@@ -159,7 +163,12 @@ StateMachine::state StateMachine::tapeFollowState2() {
 }
 
 StateMachine::state StateMachine::jumpState() {
-    
+
+
+}
+
+StateMachine::state StateMachine::postJumpState() {
+
 
 }
 

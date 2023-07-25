@@ -1,3 +1,5 @@
+#include <Wire.h>
+
 void imuInit();
 
 bool isOnRocks();

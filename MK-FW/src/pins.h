@@ -15,15 +15,13 @@
 #define MOTOR_1B PA_3
 #define MOTOR_2A PB_8
 #define MOTOR_2B PB_9
-#define CLK PB3
-#define MISO PB4
-#define MOSI PB5
-#define CS PA15
 #define I2C_SDA PB7
 #define I2C_SCL PB6
 #define ZERO PB4
 #define TAPE_R PA12
 #define TAPE_L PA11
+#define TAPE_E_L PA10
+#define TAPE_E_R PA9
 #define START_SIDE PC14
 // Fixed variables 
 #define LEFT_MAX 400
