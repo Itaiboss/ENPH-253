@@ -58,9 +58,6 @@ uint32_t outsideWeight = 4;
 
 uint32_t frequency_check_frequency = 10;
 
-
-
-
 void ir_init() {
   pinMode(IR_READ_LEFT, INPUT);
   pinMode(IR_READ_RIGHT, INPUT);
