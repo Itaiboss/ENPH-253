@@ -20,36 +20,34 @@
 
 
 static const char* LOG_TAG = "MAIN";
-StateMachine state_machine;
+extern StateMachine state_machine;
 
 void setup() {
-  Wire.begin(I2C_SDA,I2C_SCL);
-  Wire.setSDA(I2C_SDA);
-  Wire.setSCL(I2C_SCL);
   delay(100);  // allow power to stabilize
   // if anything writes to these before started, it will crash.
   Serial.begin(9600);
   Serial.setTimeout(100);
   state_machine.init();
+  pinMode(START_SIDE,INPUT);
   imuInit();
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
+  // pwm_start(MOTOR_2B, 1000, 2500, RESOLUTION_12B_COMPARE_FORMAT);
+  // pwm_start(MOTOR_1B, 1000, 2500, RESOLUTION_12B_COMPARE_FORMAT);
 }
 
 void loop() {
-  pwm_start(MOTOR_A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
-  // uint32_t high = 310;
-  // uint32_t low = 240;
-  // for (int i = low ; i < high; i+=1) {
-  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
-  //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
-  //   delay(30);
-  // }
-  // for (int i = high ; i > low; i-=1) {
-  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
-  //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
-  //   delay(30);
-  // }
-  pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
+  //state_machine.determineState();
+  
+  //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
+  uint32_t high = LEFT_MAX;
+  uint32_t low = RIGHT_MAX;
+  for (int i = high ; i > low; i-=2) {
+    pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+    CONSOLE_LOG(LOG_TAG, "servo:%i",i);
+    delay(30);
+  }
+  delay(500);
+  
 }

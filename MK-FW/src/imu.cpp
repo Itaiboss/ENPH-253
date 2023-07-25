@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <math.h>
+#include <pins.h>
  
 #define SIZE 50
 const int MPU = 0x68;
@@ -15,19 +16,17 @@ int minVal=265;
 int maxVal=402;
  
 void imuInit(){
-
-Wire.begin();
-Wire.beginTransmission(MPU);
-Wire.write(0x6B);
-Wire.write(0);
-Wire.endTransmission(true);
-Serial.begin(9600);
-
+    Wire.begin(I2C_SDA,I2C_SCL);
+    Wire.setSDA(I2C_SDA);
+    Wire.setSCL(I2C_SCL);
+    Wire.beginTransmission(MPU);
+    Wire.write(0x6B);
+    Wire.write(0);
+    Wire.endTransmission(true);
+    Serial.begin(9600);
 }
 
-bool isOnRocks(){
-
-bool returnVal = false;
+bool isOnRocks() {
 
 Wire.beginTransmission(MPU);
 Wire.write(0x3B);
@@ -49,7 +48,7 @@ diffAcZ = abs(AcZ - lastAcZ);
 }
 
 if(diffAcX > thresh || diffAcY > thresh || diffAcZ > thresh){
-    returnVal = true;
+    return true;
 }
 
 Wire.beginTransmission(MPU);
@@ -64,7 +63,7 @@ lastAcX = AcX;
 lastAcY = AcY;
 lastAcZ = AcZ;
 
-return returnVal;
+return false;
 }
 
 void imuZero(){
@@ -80,7 +79,6 @@ void getPosition(){
     int16_t r, p, y, rV, pV, yV = 0;
 
     for(int i = 0; i < SIZE; i++){
-        isOnRocks();
         int xAng = map(lastAcX,minVal,maxVal,-90,90);
         int yAng = map(lastAcY,minVal,maxVal,-90,90);
         int zAng = map(lastAcZ,minVal,maxVal,-90,90);

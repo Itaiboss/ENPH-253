@@ -10,15 +10,15 @@ class StateMachine {
     /**
      * @brief Possible device states
      */
-    typedef enum {
+    enum state{
         UNKNOWN                 =   0,
-        INIT                    =   1,
-        START                   =   2,
-        TAPE_FOLLOW             = 100,
-        IR_FOLLOW               = 101,
-        JUMP                    = 102,
+        START                   =   1,
+        TAPE_FOLLOW_1            = 100,
+        TAPE_FOLLOW_2            = 101,
+        IR_FOLLOW               = 103,
+        JUMP                    = 104,
         ERROR                   = 900,
-    } state;
+    };
 
     /**
      * @brief StateMachine object constructor
@@ -50,20 +50,13 @@ class StateMachine {
     std::string getStateString(StateMachine::state);
 
     /**
-     * @brief Returns the next state of the device
-     * 
-     * @return next device state
-     */
-    state getNextState();
-
-    /**
      * @brief Determines the next state of the device
      * 
      */
     void determineState();
 
-    state tapeFollowState();
-
+    state tapeFollowState1();
+    state tapeFollowState2();
     state irState();
     state errorState();
     state initState();
