@@ -21,7 +21,10 @@ double r_imaginary[NUM_SAMPLES];
 uint32_t valueHistory[ROLLING_AVERAGE_NUMBER] = {0};
 uint32_t signalAmplitudeCutOff = 20;
 uint32_t bottom_frequency_cutoff = 950;
+uint32_t expected_frequency = 1000;
 uint32_t top_frequency_cutoff = 1150;
+bool doesNeedFrequencyCheck = true;
+uint32_t trials_since_last_check = 0;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -53,6 +56,10 @@ uint32_t middle = 267;
 uint32_t centeredWeight = 1;
 uint32_t outsideWeight = 4;
 
+uint32_t frequency_check_frequency = 10;
+
+
+
 
 void ir_init() {
   pinMode(IR_READ_LEFT, INPUT);
@@ -60,6 +67,8 @@ void ir_init() {
   pinMode(IR_READ_EXTREME_LEFT, INPUT);
   pinMode(IR_READ_EXTREME_RIGHT, INPUT);
   CONSOLE_LOG(LOG_TAG, "Initializing IR");
+  doesNeedFrequencyCheck = true;
+  trials_since_last_check = 0;
   // gives the default values for 
   for (int i = 0; i < ROLLING_AVERAGE_NUMBER; i++) {
     valueHistory[i] = middle;
@@ -173,10 +182,25 @@ uint32_t ir_PID() {
   }
 
   sample_time = sample_time / NUM_SAMPLES;
-  double left_frequency = getFrequency(left, sample_time);
-  double right_frequency = getFrequency(right, sample_time);
-  double left_extreme_frequency = getFrequency(extreme_left, sample_time);
-  double right_extreme_frequency = getFrequency(extreme_right, sample_time);
+  double left_frequency = expected_frequency;
+  double right_frequency = expected_frequency;
+  double left_extreme_frequency = expected_frequency;
+  double right_extreme_frequency = expected_frequency;
+
+  if (doesNeedFrequencyCheck) {
+    double left_frequency = getFrequency(left, sample_time);
+    double right_frequency = getFrequency(right, sample_time);
+    double left_extreme_frequency = getFrequency(extreme_left, sample_time);
+    double right_extreme_frequency = getFrequency(extreme_right, sample_time);
+    doesNeedFrequencyCheck = false;
+    trials_since_last_check = 0;
+  } else {
+    if (trials_since_last_check == frequency_check_frequency) {
+      doesNeedFrequencyCheck = true;
+    } else {
+      trials_since_last_check++;
+    }
+  }
 
   uint32_t left_amplitude = 0;
   uint32_t right_amplitude = 0;
@@ -262,6 +286,10 @@ void resetMaximums() {
   left_min_val = 1024;
   right_max_val = 0;
   right_min_val = 1024;
+  extreme_left_max_val = 0;
+  extreme_left_min_val = 1024;
+  extreme_right_max_val = 0;
+  extreme_right_min_val = 1024;
 }
 
 
