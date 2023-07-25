@@ -1,11 +1,27 @@
-#include <pins.h>
-#include <speedControl.h>
-#include <wire.h>
+#include <control.h>
+#include <Wire.h>
 
+/**
+ * @brief  Sets the steering for the front wheels. 
+ * @note   
+ * @param  turning_value: A value between 1 and -1 where 1 refers to maximum right turn and -1 to maximum left turn. 
+ * @retval None
+ */
+void set_steering(double turning_value) {
+    uint32_t valueToMotor;
+    if (turning_value > 0) {
+        valueToMotor = (RIGHT_MAX - MID_POINT) * turning_value + MID_POINT;
+    } else if (turning_value < 0) {
+        valueToMotor = (MID_POINT - LEFT_MAX) * turning_value + MID_POINT;
+    } else {
+        valueToMotor = MID_POINT;
+    }
+
+    pwm_start(SERVO, 50, valueToMotor, RESOLUTION_12B_COMPARE_FORMAT);
+
+}
 
 volatile double motorSpeed = 0;
-
-
 /**
  * @brief sets the motor speed to the duty cycle of the percentage of the double.
  * *  Negative values correspond the backwards direction and positve the the forward direction. 
@@ -44,6 +60,3 @@ void set_differential_steering(double difference) {
     pwm_start(MOTOR_2A, MOTOR_CONTROL_FREQUENCY, top_motor_2_speed / 4098, RESOLUTION_12B_COMPARE_FORMAT);
 
 }
-
-
-

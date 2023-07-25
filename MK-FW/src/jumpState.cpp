@@ -24,9 +24,6 @@ JumpState preform(JumpState current_state) {
         // hard left turn
     }
 
-    if (current_state == onGround) {
-        
-    }
     return get_next_state(current_state);
 
 }
@@ -68,13 +65,17 @@ JumpState get_next_state(JumpState current_state) {
         return inAir;
     }
 
-    if (current_state == onGround) {
-        //TODO: scan IR
-        return onGround;
-    }
-
     return onTape;
 }
+
+
+/**
+ * @brief  Checks if the all the provided sensors are low. 
+ * @note   
+ * @param  sensor_names[]: a list of names for the sensors. 
+ * @param  size: the size of the provided array. 
+ * @retval 
+ */
 
 bool is_all_sensors_low(uint32_t sensor_names[], uint32_t size) {
     for(int i = 0; i < size; i++) {
