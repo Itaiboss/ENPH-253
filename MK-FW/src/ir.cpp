@@ -279,9 +279,9 @@ void ir_PID() {
   }
 
   if (left_amplitude == 0 && right_amplitude == 0 && left_extreme_ampltude == 0 && right_extreme_amplitude) {
-    set_motor_speed(MOTOR_SLOW_SPEED);
+    set_motor_speed(MOTOR_SLOW_SPEED, true);
   } else {
-    set_motor_speed(MOTOR_MAX_SPEED);
+    set_motor_speed(MOTOR_MAX_SPEED, true);
   }
 
   // CONSOLE_LOG(LOG_TAG, "right: %i, left: %i", (int) right_amplitude, (int) left_amplitude);

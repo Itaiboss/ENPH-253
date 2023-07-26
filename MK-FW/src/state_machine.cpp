@@ -122,7 +122,7 @@ StateMachine::state StateMachine::startState() {
     if (!once) {
         startTime = millis();
         turnComplete = false;
-        set_motor_speed(0.8);
+        set_motor_speed(0.8, true);
         if (START_SIDE == HIGH) {
             set_steering(0);
         } else {
@@ -193,13 +193,13 @@ StateMachine::state StateMachine::irState() {
 
 //currently is not used. 
 StateMachine::state StateMachine::tapeFollowState1() {
-    pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
+    PID();
 }
 
 int follow_step = 0;
 
 StateMachine::state StateMachine::tapeFollowState2() {
-    pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
+    PID();
     // this block handles before you have hit the first marker. 
     if (follow_step == 0) {
         if (digitalRead(TAPE_E_R) && !digitalRead(TAPE_E_L)) { //maybe needs extra error correction to make sure the others are still on the tape. 
@@ -300,7 +300,7 @@ StateMachine::state StateMachine::errorState() {
     if(!once) {
         start_time = millis();
         once = true; 
-        set_differential_steering(direction_flip ? -1 : 1);
+        set_differential_steering(1, direction_flip);
     }
 
     if(IR_present()) {
