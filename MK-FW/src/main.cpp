@@ -34,13 +34,14 @@ void setup() {
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
-  set_motor_speed(.55, true);
+  // set_motor_speed(0.9, true);
+  // set_steering(0, true);
 }
 
 
 
 void loop() {
-  PID();
+  // PID();
   //state_machine.determineState();
   // uint32_t high = LEFT_MAX;
   // uint32_t low = RIGHT_MAX;
@@ -50,5 +51,7 @@ void loop() {
   //   delay(30);
   // }
   // delay(500);
+
+  ir_PID();
   
 }

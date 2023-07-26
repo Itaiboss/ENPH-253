@@ -26,7 +26,7 @@ uint32_t expected_frequency = 1000;
 uint32_t top_frequency_cutoff = 1150;
 bool doesNeedFrequencyCheck = true;
 uint32_t trials_since_last_check = 0;
-double middle = 0.5;
+
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -42,20 +42,20 @@ uint32_t extreme_right_min_val = 1024;
 
 // the following variables are used to track the 
 // different prop, derivative, and integral error terms. 
-double current_error = 0;
-double last_error_IR = 0;
-double total_error_IR = 0;
+int32_t current_error = 0;
+int32_t last_error_IR = 0;
+int32_t total_error_IR = 0;
 
 // the following are coefficents to control the PID logic 
-double prop_coef = 100;
+double prop_coef = 0.00083;
 double derivative_coef = 0;
 double integral_coef = 0;
 
 
 uint32_t centeredWeight = 1;
-uint32_t outsideWeight = 4;
+uint32_t outsideWeight = 8;
 
-uint32_t frequency_check_frequency = 10;
+uint32_t frequency_check_frequency = 0;
 
 void ir_init() {
   pinMode(IR_READ_LEFT, INPUT);
@@ -94,19 +94,19 @@ void updateMinAndMax(int l, int r, int l_e, int r_e) {
       right_min_val = r;
     }
 
-    if(l_e > left_max_val) {
-      left_max_val = l_e;
+    if(l_e > extreme_left_max_val) {
+      extreme_left_max_val = l_e;
     }
 
-    if(l_e < left_min_val) {
-      left_min_val = l_e;
+    if(l_e < extreme_left_min_val) {
+      extreme_left_min_val = l_e;
     }
 
-    if(r_e > right_max_val) {
-      right_max_val = r_e;
+    if(r_e > extreme_right_max_val) {
+      extreme_right_max_val = r_e;
     }
-    if(r_e < right_min_val) {
-      right_min_val = r_e;
+    if(r_e < extreme_right_min_val) {
+      extreme_right_min_val = r_e;
     }
 
 }
@@ -217,6 +217,7 @@ bool IR_present() {
 }
 
 void ir_PID() {
+
   
   uint32_t timer;
   uint32_t time_marker = millis();
@@ -230,13 +231,20 @@ void ir_PID() {
     extreme_left_ir_reading[i] = analogRead(IR_READ_EXTREME_LEFT);
     extreme_right_ir_reading[i] = analogRead(IR_READ_EXTREME_RIGHT);
 
+    // CONSOLE_LOG(LOG_TAG, "l: %i, r: %i, le: %i, re: %i", (int) left_ir_reading[i], (int) right_ir_reading[i], (int) extreme_left_ir_reading[i], (int) extreme_right_ir_reading[i]);
+
+    
     updateMinAndMax(left_ir_reading[i],
      right_ir_reading[i],
      extreme_left_ir_reading[i],
      extreme_right_ir_reading[i]);
+
+    
     
     sample_time += micros() - timer;
   }
+
+  // CONSOLE_LOG(LOG_TAG, "le: %i %i, re: %i - %i", (int) extreme_left_max_val, (int) extreme_left_min_val, (int) extreme_right_max_val, (int) extreme_left_min_val);
 
   sample_time = sample_time / NUM_SAMPLES;
   double left_frequency = expected_frequency;
@@ -244,20 +252,25 @@ void ir_PID() {
   double left_extreme_frequency = expected_frequency;
   double right_extreme_frequency = expected_frequency;
 
-  if (doesNeedFrequencyCheck) {
-    double left_frequency = getFrequency(left, sample_time);
-    double right_frequency = getFrequency(right, sample_time);
-    double left_extreme_frequency = getFrequency(extreme_left, sample_time);
-    double right_extreme_frequency = getFrequency(extreme_right, sample_time);
-    doesNeedFrequencyCheck = false;
-    trials_since_last_check = 0;
-  } else {
-    if (trials_since_last_check == frequency_check_frequency) {
-      doesNeedFrequencyCheck = true;
-    } else {
-      trials_since_last_check++;
-    }
-  }
+  left_frequency = getFrequency(left, sample_time);
+    right_frequency = getFrequency(right, sample_time);
+    left_extreme_frequency = getFrequency(extreme_left, sample_time);
+    right_extreme_frequency = getFrequency(extreme_right, sample_time);
+
+  // if (doesNeedFrequencyCheck) {
+  //   left_frequency = getFrequency(left, sample_time);
+  //   right_frequency = getFrequency(right, sample_time);
+  //   left_extreme_frequency = getFrequency(extreme_left, sample_time);
+  //   right_extreme_frequency = getFrequency(extreme_right, sample_time);
+  //   doesNeedFrequencyCheck = false;
+  //   trials_since_last_check = 0;
+  // } else {
+  //   if (trials_since_last_check == frequency_check_frequency) {
+  //     doesNeedFrequencyCheck = true;
+  //   } else {
+  //     trials_since_last_check++;
+  //   }
+  // }
 
   uint32_t left_amplitude = 0;
   uint32_t right_amplitude = 0;
@@ -278,25 +291,39 @@ void ir_PID() {
     right_extreme_amplitude = extreme_right_max_val - extreme_right_min_val;
   }
 
-  if (left_amplitude == 0 && right_amplitude == 0 && left_extreme_ampltude == 0 && right_extreme_amplitude) {
-    set_motor_speed(MOTOR_SLOW_SPEED, true);
+  CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
+
+  if (left_amplitude < signalAmplitudeCutOff && right_amplitude < signalAmplitudeCutOff && left_extreme_ampltude < signalAmplitudeCutOff && right_extreme_amplitude < signalAmplitudeCutOff) {
+    // set_motor_speed(MOTOR_SLOW_SPEED, true);
+    CONSOLE_LOG(LOG_TAG, "Nothing detected");
   } else {
-    set_motor_speed(MOTOR_MAX_SPEED, true);
+    // set_motor_speed(MOTOR_MAX_SPEED, true);
+    CONSOLE_LOG(LOG_TAG, "things Are detected");
   }
 
-  // CONSOLE_LOG(LOG_TAG, "right: %i, left: %i", (int) right_amplitude, (int) left_amplitude);
+
+  // CONSOLE_LOG(LOG_TAG, "frequency: %i, amp: %i", (int) right_extreme_frequency, (int) right_extreme_amplitude);
+  // CONSOLE_LOG(LOG_TAG, "right max: %i right min: %i",  (int) extreme_right_max_val, (int) extreme_right_min_val);
+
  
 
   current_error = get_error(right_amplitude, left_amplitude, right_extreme_amplitude, left_extreme_ampltude);
 
+
+  
+
   uint32_t total_time = millis() - time_marker;
-  double derivative_error = (current_error - last_error_IR);
+  uint32_t derivative_error = (current_error - last_error_IR);
   total_error_IR += total_time * current_error;
   last_error_IR = current_error;
 
   resetMaximums();
-  uint32_t turn_value = middle + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
+
+  
+  uint32_t turn_value = MID_POINT + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
+  CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
   set_steering(turn_value);
+ 
 }
 
 
@@ -312,16 +339,16 @@ void ir_PID() {
  * @retval A double containg the value of the error. 
  */
 
-double get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_t left_extreme) {
+int32_t get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_t left_extreme) {
   // CONSOLE_LOG(LOG_TAG, "right: %i, left: %i", (int) right, (int) left);
   double total = right + left + right_extreme + left_extreme;
 
-  double normalized_right = normalize_magnitude(total, right);
-  double normalized_left = normalize_magnitude(total, left);
-  double normalized_e_right = normalize_magnitude(total, right_extreme);
-  double normalized_e_left = normalize_magnitude(total, left_extreme);
+  int32_t normalized_right = normalize_magnitude(total, right);
+  int32_t normalized_left = normalize_magnitude(total, left);
+  int32_t normalized_e_right = normalize_magnitude(total, right_extreme);
+  int32_t normalized_e_left = normalize_magnitude(total, left_extreme);
 
-  return centeredWeight * (normalized_left - normalized_right) + centeredWeight * (normalized_e_left - normalized_e_right);
+  return centeredWeight * (normalized_left - normalized_right) + outsideWeight * (normalized_e_left - normalized_e_right);
 }
 
 /**
@@ -333,7 +360,7 @@ double get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_t
  */
 double normalize_magnitude(double total, uint32_t ampltitude) {
   // CONSOLE_LOG(LOG_TAG, "total: %i, ampltiude: %i, divided term: %i", (int) total, (int) ampltitude, (int) (ampltitude / total * 100));
-  return ampltitude / (total + 100);
+  return ampltitude / (total + 100) * 10000;
 }
 
 

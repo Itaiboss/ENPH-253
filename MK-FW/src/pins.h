@@ -18,15 +18,15 @@
 #define I2C_SDA PB7
 #define I2C_SCL PB6
 #define ZERO PB4
-#define TAPE_R PA12
-#define TAPE_L PA11
-#define TAPE_E_L PA10
-#define TAPE_E_R PA9
+#define TAPE_R PA0
+#define TAPE_L PA1
+#define TAPE_E_L PA5
+#define TAPE_E_R PA4
 #define START_SIDE PC14
 // Fixed variables 
 #define LEFT_MAX 370
 #define RIGHT_MAX 20
-#define MID_POINT 230
+#define MID_POINT 222
 #define IR_BEACON_DIST 100
 
 

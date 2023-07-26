@@ -243,6 +243,7 @@ StateMachine::state StateMachine::postJumpState() {
     // we are assuming that we will not fall of the edge in the case of failure. 
     if (!once) {
         set_steering(0);
+        set_motor_speed(0.8, true);
         hasFinishedTurning = false;
         once = true;
     }
@@ -299,6 +300,7 @@ StateMachine::state StateMachine::postJumpState() {
 StateMachine::state StateMachine::errorState() {
     if(!once) {
         start_time = millis();
+        set_motor_speed(0.8, true);
         once = true; 
         set_differential_steering(1, direction_flip);
     }

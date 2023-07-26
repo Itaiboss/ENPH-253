@@ -8,6 +8,9 @@
  * @retval None
  */
 void set_steering(double turning_value, bool right) {
+    if (turning_value > 1) {
+        turning_value = 1;
+    }
     uint32_t valueToMotor;
     if (right) {
         valueToMotor = (RIGHT_MAX - MID_POINT) * turning_value + MID_POINT;

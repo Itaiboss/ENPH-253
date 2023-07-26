@@ -1,5 +1,6 @@
 #include <jumpState.h>
 #include <pins.h>
+#include <control.h>
 
 uint32_t trialCounter = 0;
 uint32_t tape_checking_sensors[] =  {TAPE_R, TAPE_E_R, TAPE_L};
@@ -10,18 +11,20 @@ bool findSonar = false;
 
 JumpState preform(JumpState current_state) {
     if (current_state == onTape) {
-        // full speed on motors
-        // center steering maybe with a slight left bias. 
+        
+            set_motor_speed(0.9, true);
+            set_steering(0.1, false);
+            
         
     }
     
-    if (current_state == offTape) {
-        // do nothing 
-    }
 
     if (current_state == inAir) {
-        // cut motors
-        // hard left turn
+        
+            set_motor_speed(0, true);
+            set_steering(0.7, false);
+            
+        
     }
 
     return get_next_state(current_state);
