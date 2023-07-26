@@ -97,6 +97,10 @@ void PID() {
     }
 }
 
+bool tapeIsPresent() {
+    return digitalRead(TAPE_L) || digitalRead(TAPE_R);
+}
+
 //servo center = 6% duty cycle 246
 //servo max right = 10% duty cycle 490
 //servo max left = 2% duty cycle 82

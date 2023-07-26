@@ -6,4 +6,5 @@
 #include <stdint.h>
 
 void pidInit();
-void PID();
+uint32_t PID();
+bool tapeIsPresent();

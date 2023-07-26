@@ -14,17 +14,20 @@
 #define IR_READ_EXTREME_RIGHT PA_5
 #define IR_RESET PA12    //digital read pin
 #define NUM_SAMPLES 128 // number of samples which are being collected.
-#define ROLLING_AVERAGE_NUMBER 5
+#define MOTOR_SLOW_SPEED 0.5
+#define MOTOR_MAX_SPEED 0.75
 
 void ir_init();
 
-uint32_t ir_PID();
+bool IR_present();
 
-uint32_t ir_follow_steering_value();
+void ir_PID();
 
-double get_error(uint32_t right, uint32_t left);
+double get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_t left_extreme);
 double normalize_magnitude(double total, uint32_t ampltitude);
 
 void resetMaximums();
+
+void resetErrors();
 
 enum sensors { left, right, extreme_left, extreme_right };

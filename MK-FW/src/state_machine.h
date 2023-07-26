@@ -5,6 +5,10 @@
 
 #include <stdint.h>
 #include <string>
+
+#define START_HARDCODE_LENGTH 2000
+#define LOST_MODE_OSCILLATION_TIME 1000;
+
 class StateMachine {
  public:
     /**
