@@ -39,16 +39,11 @@ void setup() {
 }
 
 void loop() {
-  // if(ZERO == HIGH){
-  //   imuZero();
-  //   CONSOLE_LOG(LOG_TAG, "zeroed");
-  // }
-  //bool rock = isOnRocks();
+  bool rock = isOnRocks();
+  int start = millis();
   getPosition();
   CONSOLE_LOG(LOG_TAG, "Roll:%i, Pitch:%i, Yaw:%i ", getRoll(), getPitch(), getYaw());
-  //CONSOLE_LOG(LOG_TAG, "Current velocity: %i, %i, %i ", getRollVelocity(), getPitchVelocity(), getYawVelocity());
-  //CONSOLE_LOG(LOG_TAG, "count: %i", testVal);
-  testVal++;
+  //CONSOLE_LOG(LOG_TAG, "%i",  millis() - start );
   //CONSOLE_LOG(LOG_TAG,"On rocks: %d",rock);
   //CONSOLE_LOG(LOG_TAG, "%d", PID());
   //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
