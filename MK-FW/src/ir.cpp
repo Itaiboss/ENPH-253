@@ -294,10 +294,10 @@ void ir_PID() {
   CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
 
   if (left_amplitude < signalAmplitudeCutOff && right_amplitude < signalAmplitudeCutOff && left_extreme_ampltude < signalAmplitudeCutOff && right_extreme_amplitude < signalAmplitudeCutOff) {
-    // set_motor_speed(MOTOR_SLOW_SPEED, true);
+    set_motor_speed(MOTOR_SLOW_SPEED, true);
     CONSOLE_LOG(LOG_TAG, "Nothing detected");
   } else {
-    // set_motor_speed(MOTOR_MAX_SPEED, true);
+    set_motor_speed(MOTOR_MAX_SPEED, true);
     CONSOLE_LOG(LOG_TAG, "things Are detected");
   }
 
@@ -370,10 +370,11 @@ void resetErrors() {
   total_error_IR = 0;
 }
 
-
-
-
-
+/**
+ * @brief  Resets all the maximum values. 
+ * @note   
+ * @retval None
+ */
 void resetMaximums() {
   left_max_val = 0;
   left_min_val = 1024;

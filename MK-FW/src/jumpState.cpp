@@ -1,6 +1,7 @@
 #include <jumpState.h>
 #include <pins.h>
 #include <control.h>
+#include <imu.h>
 
 uint32_t trialCounter = 0;
 uint32_t tape_checking_sensors[] =  {TAPE_R, TAPE_E_R, TAPE_L};
@@ -23,8 +24,6 @@ JumpState preform(JumpState current_state) {
         
             set_motor_speed(0, true);
             set_steering(0.7, false);
-            
-        
     }
 
     return get_next_state(current_state);
@@ -64,8 +63,17 @@ JumpState get_next_state(JumpState current_state) {
     }
 
     if (current_state == inAir) {
-        //TODO: use gyro?
+        getPosition();
+        if (isUpwardsAcceleration()) {
+            trialCounter++;
+        }
+
+        if(trialCounter == NUM_OF_TRIALS) {
+            trialCounter = 0;
+            return onGround;
+        }
         return inAir;
+
     }
 
     return onTape;

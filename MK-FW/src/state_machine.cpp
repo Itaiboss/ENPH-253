@@ -26,6 +26,7 @@ uint32_t rock_step;
 JumpState current_jump_state = onTape;
 uint32_t startTime = 0;
 bool direction_flip = true;
+uint32_t numOfConsececutiveNonRocks = 10;
 
 StateMachine::StateMachine() {
 }
@@ -109,24 +110,22 @@ void StateMachine::determineState() {
         curr_state = next_state;
     }
 }
-// StateMachine::state turnState() {
 
-// }
 
 bool turnComplete = false;
 uint32_t start_startTime = 0;
 
 
 StateMachine::state StateMachine::startState() {
-    // on the first run it will set a hard turn to the right or left based on the starting position. 
+    // on the first run it will set a hard turn to the right or left based on the starting position. HIGH means starting on the left side. 
     if (!once) {
         startTime = millis();
         turnComplete = false;
         set_motor_speed(0.8, true);
         if (START_SIDE == HIGH) {
-            set_steering(0);
+            set_steering(0, true);
         } else {
-            set_steering(1);
+            set_steering(0, false);
         }
         start_time = millis();
         once = true; 
@@ -135,9 +134,19 @@ StateMachine::state StateMachine::startState() {
     // this block will stop the turning once it reaches 90 degrees. 
 
     if (!turnComplete) {
-        if (getYaw() > 90) {
-            set_steering(0.5);
-            turnComplete = true;
+        getPosition();
+        if (START_SIDE == HIGH) {
+            // this line of code coule be very buggy, it is meant to say that stop once you have turned 90 degrees to the right. 
+            if (getYaw() < -80) {
+                set_steering(0, true);
+                turnComplete = true;
+            }
+        } else {
+            // same as above but now we are stopping once we have turned 90 degrees to the left. 
+            if (getYaw() > 80) {
+                set_steering(0, true);
+                turnComplete = true;
+            }
         }
     }
 
@@ -150,7 +159,7 @@ StateMachine::state StateMachine::startState() {
     } 
 
     if (millis() - start_startTime > START_HARDCODE_LENGTH) {
-        CONSOLE_LOG(LOG_TAG, "Unknown state reached please fix");
+        CONSOLE_LOG(LOG_TAG, "Unknown state has been reached.");
         once = false;
         return ERROR;
     }
@@ -159,32 +168,56 @@ StateMachine::state StateMachine::startState() {
 }
 
 
+uint32_t notOnRocksCounter = 0;
+uint32_t onRocksCounter = 0;
+uint32_t howRocksAreNeeded = 4;
+
+
 
 StateMachine::state StateMachine::irState() {
    
     // assigns the rock step be one at the start. this means that we have yet to reach the rocks. 
     if(!once){
         rock_step = 0;
+        notOnRocksCounter = 0;
+        onRocksCounter = 0;
     }
+
     ir_PID();
+    getPosition();
     bool on_rocks = isOnRocks();
+    // enter this block when we are on the rocks. 
     if (on_rocks && rock_step == 0) {
-        rock_step = 1;
+        onRocksCounter++;
+        // only continue to the next steps once multiple trials have been completed. 
+        if (onRocksCounter == howRocksAreNeeded) {
+            rock_step = 1;
+        }
     }
 
     if (!on_rocks && rock_step == 1) {
+        // increment a consecetive not on rocks counter. 
+        notOnRocksCounter++;
+
+        // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
+
+        if(notOnRocksCounter == numOfConsececutiveNonRocks) {
+            once = false;
+            // may need to be adjusted as needed. 
+            set_steering(0.2, false);
+            return TAPE_FOLLOW_2;
+        }
         // if (getDistance() < IR_BEACON_DIST) {
         //     set_steering(0.25);
         //     once = false;
         //     return TAPE_FOLLOW_2;
         // }
 
-        // will need to add this in once sonar is up and running. 
+        // will need to add this in once sonar is up and running. not even sure if it is needed. 
 
-        once = false;
-        set_steering(0.35);
-        return TAPE_FOLLOW_2;
-
+        
+    } else {
+        notOnRocksCounter = 0;
 
     }
 
@@ -204,7 +237,9 @@ StateMachine::state StateMachine::tapeFollowState2() {
     if (follow_step == 0) {
         if (digitalRead(TAPE_E_R) && !digitalRead(TAPE_E_L)) { //maybe needs extra error correction to make sure the others are still on the tape. 
             follow_step = 1;
-            imuZero();
+            // zeros the position 
+            getPosition();
+            storePosition();
         }
         return TAPE_FOLLOW_2;
     } 
@@ -238,11 +273,15 @@ StateMachine::state StateMachine::jumpState() {
 
 bool hasFinishedTurning = false;
 
+uint32_t postJumpTimer = 0;
+
 StateMachine::state StateMachine::postJumpState() {
 
     // we are assuming that we will not fall of the edge in the case of failure. 
     if (!once) {
-        set_steering(0);
+        postJumpTimer = millis();
+        getPosition();
+        set_steering(1, false);
         set_motor_speed(0.8, true);
         hasFinishedTurning = false;
         once = true;
@@ -252,10 +291,16 @@ StateMachine::state StateMachine::postJumpState() {
         return IR_FOLLOW;
     }
     if (!hasFinishedTurning) {
-        if (getRoll() < 180) { // will need some fixing
+        getPosition();
+        if (getYaw() > 170 || getYaw() < -50) {
             set_steering(0.5);
             hasFinishedTurning = true;
         } 
+    }
+
+    if (millis() - postJumpTimer > 5000) {
+        once = false;
+        return ERROR;
     }
 }
 
@@ -300,7 +345,7 @@ StateMachine::state StateMachine::postJumpState() {
 StateMachine::state StateMachine::errorState() {
     if(!once) {
         start_time = millis();
-        set_motor_speed(0.8, true);
+        set_motor_speed(0.6, true);
         once = true; 
         set_differential_steering(1, direction_flip);
     }

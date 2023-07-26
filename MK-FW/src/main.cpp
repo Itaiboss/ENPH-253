@@ -34,8 +34,8 @@ void setup() {
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
-  // set_motor_speed(0.9, true);
-  // set_steering(0, true);
+  set_motor_speed(0.9, true);
+  set_steering(0, true);
 }
 
 
@@ -52,6 +52,19 @@ void loop() {
   // }
   // delay(500);
 
-  ir_PID();
+  // ir_PID();
+
+
+
+  getPosition();
+
+  if (isOnRocks()) {
+    CONSOLE_LOG(LOG_TAG, "On rocks");
+  }
+
+  if(isUpwardsAcceleration()) {
+    CONSOLE_LOG(LOG_TAG, "Upwards acceleration");
+  }
+  CONSOLE_LOG(LOG_TAG, "yaw: %i, roll: %i, pitch: %i, isUpwards: %i", getYaw(), getRoll(), getPitch(), isUpwardsAcceleration());
   
 }
