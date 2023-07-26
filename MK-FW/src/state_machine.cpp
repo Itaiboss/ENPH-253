@@ -149,7 +149,7 @@ StateMachine::state StateMachine::irState() {
 }
 
 StateMachine::state StateMachine::tapeFollowState1() {
-    pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
+    //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
 
     // if detects jump style tape return jumpState and zero the IMU. 
 

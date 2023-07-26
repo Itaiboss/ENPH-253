@@ -6,4 +6,4 @@
 #include <stdint.h>
 
 void pidInit();
-uint32_t PID();
+void PID();

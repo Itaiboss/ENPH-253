@@ -24,9 +24,9 @@
 #define TAPE_E_R PA9
 #define START_SIDE PC14
 // Fixed variables 
-#define LEFT_MAX 400
-#define RIGHT_MAX 0
-#define MID_POINT 130
+#define LEFT_MAX 370
+#define RIGHT_MAX 20
+#define MID_POINT 230
 #define IR_BEACON_DIST 100
 
 

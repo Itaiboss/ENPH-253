@@ -17,6 +17,7 @@
 #include <ir.h>
 #include <pins.h>
 #include <imu.h>
+#include <control.h>
 
 
 static const char* LOG_TAG = "MAIN";
@@ -33,23 +34,21 @@ void setup() {
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
-  // pwm_start(MOTOR_2B, 1000, 2500, RESOLUTION_12B_COMPARE_FORMAT);
-  // pwm_start(MOTOR_1B, 1000, 2500, RESOLUTION_12B_COMPARE_FORMAT);
+  set_motor_speed(.55, true);
 }
 
 
 
 void loop() {
+  PID();
   //state_machine.determineState();
-  
-  //pwm_start(SERVO, 50, PID(), RESOLUTION_12B_COMPARE_FORMAT);
-  uint32_t high = LEFT_MAX;
-  uint32_t low = RIGHT_MAX;
-  for (int i = high ; i > low; i-=2) {
-    pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
-    CONSOLE_LOG(LOG_TAG, "servo:%i",i);
-    delay(30);
-  }
-  delay(500);
+  // uint32_t high = LEFT_MAX;
+  // uint32_t low = RIGHT_MAX;
+  // for (int i = high ; i > low; i-=2) {
+  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+  //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
+  //   delay(30);
+  // }
+  // delay(500);
   
 }
