@@ -20,12 +20,14 @@ double l_e_imaginary[NUM_SAMPLES];
 double r_e_imaginary[NUM_SAMPLES];
 double r_imaginary[NUM_SAMPLES];
 
-uint32_t signalAmplitudeCutOff = 20;
+uint32_t signalAmplitudeCutOff = 25;
 uint32_t bottom_frequency_cutoff = 950;
 uint32_t expected_frequency = 1000;
 uint32_t top_frequency_cutoff = 1150;
 bool doesNeedFrequencyCheck = true;
 uint32_t trials_since_last_check = 0;
+
+double bias = 0.9;
 
 
 // A one kilohertz sine wave.
@@ -53,7 +55,7 @@ double integral_coef = 0;
 
 
 uint32_t centeredWeight = 1;
-uint32_t outsideWeight = 8;
+uint32_t outsideWeight = 5;
 
 uint32_t frequency_check_frequency = 0;
 
@@ -294,11 +296,13 @@ void ir_PID() {
   CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
 
   if (left_amplitude < signalAmplitudeCutOff && right_amplitude < signalAmplitudeCutOff && left_extreme_ampltude < signalAmplitudeCutOff && right_extreme_amplitude < signalAmplitudeCutOff) {
-    set_motor_speed(MOTOR_SLOW_SPEED, true);
+    set_motor_speed(MOTOR_SLOW_SPEED, false);
     CONSOLE_LOG(LOG_TAG, "Nothing detected");
+  } else if (left_amplitude + right_amplitude > 700) {
+    set_motor_speed(0.6, false);
+    CONSOLE_LOG(LOG_TAG, "Things Are detected");
   } else {
-    set_motor_speed(MOTOR_MAX_SPEED, true);
-    CONSOLE_LOG(LOG_TAG, "things Are detected");
+    set_motor_speed(MOTOR_MAX_SPEED, false);
   }
 
 
@@ -343,10 +347,10 @@ int32_t get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_
   // CONSOLE_LOG(LOG_TAG, "right: %i, left: %i", (int) right, (int) left);
   double total = right + left + right_extreme + left_extreme;
 
-  int32_t normalized_right = normalize_magnitude(total, right);
-  int32_t normalized_left = normalize_magnitude(total, left);
-  int32_t normalized_e_right = normalize_magnitude(total, right_extreme);
-  int32_t normalized_e_left = normalize_magnitude(total, left_extreme);
+  int32_t normalized_right = normalize_magnitude(total, right) * bias;
+  int32_t normalized_left = normalize_magnitude(total, left) / bias ;
+  int32_t normalized_e_right = normalize_magnitude(total, right_extreme) * bias;
+  int32_t normalized_e_left = normalize_magnitude(total, left_extreme) / bias;
 
   return centeredWeight * (normalized_left - normalized_right) + outsideWeight * (normalized_e_left - normalized_e_right);
 }

@@ -4,8 +4,16 @@
 #include <imu.h>
 
 uint32_t trialCounter = 0;
-uint32_t tape_checking_sensors[] =  {TAPE_R, TAPE_E_R, TAPE_L};
-uint32_t jump_checking_sensors[] = {TAPE_E_L, TAPE_E_R, TAPE_L, TAPE_R};
+uint32_t tape_checking_sensors[] =  {TAPE_R, 
+    TAPE_E_R, 
+    TAPE_L
+};
+uint32_t jump_checking_sensors[] = {
+    TAPE_E_L, 
+    TAPE_E_R, 
+    TAPE_L, 
+    TAPE_R
+};
 
 bool findSonar = false;
 

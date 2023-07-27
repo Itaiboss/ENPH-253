@@ -13,9 +13,9 @@
 #define IR_READ_EXTREME_LEFT PA_4   //anlog read pin
 #define IR_READ_EXTREME_RIGHT PA_5
 #define IR_RESET PA12    //digital read pin
-#define NUM_SAMPLES 128 // number of samples which are being collected.
-#define MOTOR_SLOW_SPEED 0.5
-#define MOTOR_MAX_SPEED 0.85
+#define NUM_SAMPLES 32 // number of samples which are being collected.
+#define MOTOR_SLOW_SPEED 0.6
+#define MOTOR_MAX_SPEED 0.93
 
 void ir_init();
 
@@ -24,6 +24,7 @@ bool IR_present();
 void ir_PID();
 
 int32_t get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_t left_extreme);
+
 double normalize_magnitude(double total, uint32_t ampltitude);
 
 void resetMaximums();
