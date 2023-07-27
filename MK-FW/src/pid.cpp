@@ -46,8 +46,8 @@ void PID() {
         diff=0;
         sense_r = digitalRead(TAPE_R);
         sense_l = digitalRead(TAPE_L);
-        //CONSOLE_LOG(LOG_TAG,"TAPE L:%d TAPE R:%d", sense_l, sense_r);
-        int32_t error =0;
+        CONSOLE_LOG(LOG_TAG,"TAPE L:%d TAPE R:%d", sense_l, sense_r);
+        int32_t error = 0;
         if (sense_r == 0 && sense_l == 0) {
             if (last_l == 1) {
                 error = lookup[sense_r][sense_l]*-1;
@@ -93,7 +93,7 @@ void PID() {
             //set_differential_steering(.5, false);
         }
     } else {
-        set_motor_speed(.55, true);
+        //set_motor_speed(.55, true);
     }
 }
 

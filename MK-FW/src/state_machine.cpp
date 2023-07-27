@@ -15,6 +15,7 @@
 #include <ir.h>
 #include <sonar.h>
 #include <control.h>
+
 #pragma once
 
 static const char* LOG_TAG = "STATE_MACHINE";
@@ -252,8 +253,6 @@ StateMachine::state StateMachine::tapeFollowState2() {
             return JUMP;
         }
     }
-    
-
 }
 
 

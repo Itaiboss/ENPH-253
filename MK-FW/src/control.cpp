@@ -35,11 +35,11 @@ volatile double motorSpeed = 0;
  */
 void set_motor_speed(double speed, bool forward) {
     if (forward) {
-        pwm_start(MOTOR_1B, MOTOR_CONTROL_FREQUENCY, speed * 4098, RESOLUTION_12B_COMPARE_FORMAT);
-        pwm_start(MOTOR_2B, MOTOR_CONTROL_FREQUENCY, speed * 4098, RESOLUTION_12B_COMPARE_FORMAT);
-    } else {
         pwm_start(MOTOR_1A, MOTOR_CONTROL_FREQUENCY, speed * 4098, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(MOTOR_2A, MOTOR_CONTROL_FREQUENCY, speed * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+    } else {
+        pwm_start(MOTOR_1B, MOTOR_CONTROL_FREQUENCY, speed * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(MOTOR_2B, MOTOR_CONTROL_FREQUENCY, speed * 4098, RESOLUTION_12B_COMPARE_FORMAT);
     } 
     motorSpeed = speed;
 }

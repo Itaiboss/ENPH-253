@@ -24,29 +24,40 @@ static const char* LOG_TAG = "MAIN";
 extern StateMachine state_machine;
 
 void setup() {
+  pinMode(PC13,OUTPUT);
+  digitalWrite(PC13, LOW);
   delay(100);  // allow power to stabilize
   // if anything writes to these before started, it will crash.
   Serial.begin(9600);
   Serial.setTimeout(100);
   state_machine.init();
   pinMode(START_SIDE,INPUT);
-  imuInit();
+  //imuInit();
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
-  set_motor_speed(0.9, true);
-  set_steering(0, true);
+  pinMode(MOTOR_1A, OUTPUT);
+  pinMode(MOTOR_1B, OUTPUT);
+  pinMode(MOTOR_2A, OUTPUT);
+  pinMode(MOTOR_2B, OUTPUT);
+  set_motor_speed(0.6, true);
+  //set_steering(0, true);
+  
 }
 
 
 
 void loop() {
-  // PID();
+  PID();
+
   //state_machine.determineState();
+  //pwm_start(MOTOR_1A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
+  //pwm_start(MOTOR_2A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
+  
   // uint32_t high = LEFT_MAX;
   // uint32_t low = RIGHT_MAX;
   // for (int i = high ; i > low; i-=2) {
-  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
+  //pwm_start(SERVO, 50, MID_POINT, RESOLUTION_12B_COMPARE_FORMAT);
   //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
   //   delay(30);
   // }
@@ -56,15 +67,15 @@ void loop() {
 
 
 
-  getPosition();
+  // getPosition();
 
-  if (isOnRocks()) {
-    CONSOLE_LOG(LOG_TAG, "On rocks");
-  }
+  // if (isOnRocks()) {
+  //   CONSOLE_LOG(LOG_TAG, "On rocks");
+  // }
 
-  if(isUpwardsAcceleration()) {
-    CONSOLE_LOG(LOG_TAG, "Upwards acceleration");
-  }
-  CONSOLE_LOG(LOG_TAG, "yaw: %i, roll: %i, pitch: %i, isUpwards: %i", getYaw(), getRoll(), getPitch(), isUpwardsAcceleration());
+  // if(isUpwardsAcceleration()) {
+  //   CONSOLE_LOG(LOG_TAG, "Upwards acceleration");
+  // }
+  // CONSOLE_LOG(LOG_TAG, "yaw: %i, roll: %i, pitch: %i, isUpwards: %i", getYaw(), getRoll(), getPitch(), isUpwardsAcceleration());
   
 }
