@@ -19,7 +19,9 @@ int16_t threshold = 5; //degrees, change of angle that happens when car is on ro
  * @retval None
  */
 void imuInit(){
-    // Wire.begin();
+    Wire.setSCL(I2C_SCL);
+    Wire.setSDA(I2C_SDA);
+    Wire.begin();
     byte status = mpu.begin();
     mpu.calcOffsets();
 }

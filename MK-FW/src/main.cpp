@@ -32,23 +32,24 @@ void setup() {
   Serial.setTimeout(100);
   state_machine.init();
   pinMode(START_SIDE,INPUT);
-  //imuInit();
+  
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
   pinMode(MOTOR_1A, OUTPUT);
-  pinMode(MOTOR_1B, OUTPUT);
+  pinMode(MOTOR_1B, OUTPUT);//breaks imu
   pinMode(MOTOR_2A, OUTPUT);
   pinMode(MOTOR_2B, OUTPUT);
+  imuInit();
   set_motor_speed(0.6, true);
-  //set_steering(0, true);
+  set_steering(0, true);
   
 }
 
 
 
 void loop() {
-  PID();
+  //PID();
 
   //state_machine.determineState();
   //pwm_start(MOTOR_1A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
@@ -67,7 +68,7 @@ void loop() {
 
 
 
-  // getPosition();
+  getPosition();
 
   // if (isOnRocks()) {
   //   CONSOLE_LOG(LOG_TAG, "On rocks");
@@ -76,6 +77,6 @@ void loop() {
   // if(isUpwardsAcceleration()) {
   //   CONSOLE_LOG(LOG_TAG, "Upwards acceleration");
   // }
-  // CONSOLE_LOG(LOG_TAG, "yaw: %i, roll: %i, pitch: %i, isUpwards: %i", getYaw(), getRoll(), getPitch(), isUpwardsAcceleration());
+  CONSOLE_LOG(LOG_TAG, "yaw: %i, roll: %i, pitch: %i, isUpwards: %i", getYaw(), getRoll(), getPitch(), isUpwardsAcceleration());
   
 }
