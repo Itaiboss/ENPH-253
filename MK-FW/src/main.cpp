@@ -18,10 +18,13 @@
 #include <pins.h>
 #include <imu.h>
 #include <control.h>
+#include <jumpState.h>
 
 
 static const char* LOG_TAG = "MAIN";
 extern StateMachine state_machine;
+JumpState jumpState = onTape;
+
 
 void setup() {
   pinMode(PC13,OUTPUT);
@@ -41,12 +44,12 @@ void setup() {
   pinMode(MOTOR_2A, OUTPUT);
   pinMode(MOTOR_2B, OUTPUT);
   imuInit();
-  set_motor_speed(0.6, true);
+  // set_motor_speed(0.6, true);
   set_steering(0, true);
-  
+  storePosition();
 }
 
-
+bool once_loop = false;
 
 void loop() {
   //PID();
@@ -68,15 +71,38 @@ void loop() {
 
 
 
-  getPosition();
+  // jumpState = preform(jumpState);
 
-  // if (isOnRocks()) {
-  //   CONSOLE_LOG(LOG_TAG, "On rocks");
+
+  
+  // CONSOLE_LOG(LOG_TAG, "long right: %i, right: %i, left: %i", digitalRead(TAPE_E_R), digitalRead(TAPE_R), digitalRead(TAPE_L));
+  // CONSOLE_LOG(LOG_TAG, "current state: %i", jumpState);
+  
+
+  // if (jumpState == onGround) {
+  //   if (!once_loop) {
+  //     set_differential_steering(0.4, true);
+  //     set_motor_speed(0.95, true);
+
+  //   }
+  //   getPosition();
+  //   if (getYaw() > 160) {
+  //     set_motor_speed(0, true);
+  //   }
+
   // }
 
-  // if(isUpwardsAcceleration()) {
-  //   CONSOLE_LOG(LOG_TAG, "Upwards acceleration");
-  // }
-  CONSOLE_LOG(LOG_TAG, "yaw: %i, roll: %i, pitch: %i, isUpwards: %i", getYaw(), getRoll(), getPitch(), isUpwardsAcceleration());
+  state_machine.determineState();
+
+
+
+
+
+
+
+
+
+
+  
   
 }

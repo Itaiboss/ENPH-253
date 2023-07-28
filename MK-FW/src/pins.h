@@ -20,8 +20,8 @@
 #define ZERO PB4
 #define TAPE_L PA11
 #define TAPE_R PA12
-#define TAPE_E_L PA15
-#define TAPE_E_R PB0
+#define TAPE_E_L PB14
+#define TAPE_E_R PB15
 #define IR_R PA0
 #define IR_L PA1
 #define IR_E_L PA5

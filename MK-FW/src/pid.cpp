@@ -39,6 +39,8 @@ const double lookup[2][2] = {{5,-1}, {1,0}}; // l,r
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
     pinMode(TAPE_R, INPUT_PULLUP);
+    pinMode(TAPE_E_L, INPUT_PULLUP);
+    pinMode(TAPE_E_R, INPUT_PULLUP);
 }
 
 void PID() {
@@ -93,7 +95,7 @@ void PID() {
             //set_differential_steering(.5, false);
         }
     } else {
-        //set_motor_speed(.55, true);
+        set_motor_speed(.55, true);
     }
 }
 

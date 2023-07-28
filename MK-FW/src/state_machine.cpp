@@ -38,7 +38,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = START;
+    curr_state = TAPE_FOLLOW_2;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -129,6 +129,7 @@ StateMachine::state StateMachine::startState() {
             set_steering(0, false);
         }
         start_time = millis();
+        storePosition();
         once = true; 
     } 
 
@@ -235,19 +236,19 @@ int follow_step = 0;
 StateMachine::state StateMachine::tapeFollowState2() {
     PID();
     // this block handles before you have hit the first marker. 
-    if (follow_step == 0) {
-        if (digitalRead(TAPE_E_R) && !digitalRead(TAPE_E_L)) { //maybe needs extra error correction to make sure the others are still on the tape. 
-            follow_step = 1;
-            // zeros the position 
-            getPosition();
-            storePosition();
-        }
-        return TAPE_FOLLOW_2;
-    } 
+    // if (follow_step == 0) {
+    //     if (digitalRead(TAPE_E_R) && !digitalRead(TAPE_E_L)) { //maybe needs extra error correction to make sure the others are still on the tape. 
+    //         follow_step = 1;
+    //         // zeros the position 
+    //         getPosition();
+    //         storePosition();
+    //     }
+    //     return TAPE_FOLLOW_2;
+    // } 
 
     // this block handles before you have hit the second marker. 
     if (follow_step == 1) {
-        if (digitalRead(TAPE_E_L) && digitalRead(TAPE_E_R)) {
+        if (digitalRead(TAPE_E_R) && ((digitalRead(TAPE_L) || digitalRead(TAPE_R)))) {
             follow_step = 0;
             current_jump_state = onTape;
             return JUMP;
@@ -274,30 +275,53 @@ bool hasFinishedTurning = false;
 
 uint32_t postJumpTimer = 0;
 
+uint32_t isnt_on_rocks_counter = 0;
+uint32_t hasCutMotors = false;
+
 StateMachine::state StateMachine::postJumpState() {
 
-    // we are assuming that we will not fall of the edge in the case of failure. 
+    // we are assuming that we will not fall off the edge in the case of failure. 
     if (!once) {
         postJumpTimer = millis();
         getPosition();
-        set_steering(1, false);
-        set_motor_speed(0.8, true);
+        set_steering(350);
+        set_motor_speed(0.85, true);
         hasFinishedTurning = false;
         once = true;
+        isnt_on_rocks_counter = 0;
     }
+
+    getPosition();
+
+    if (!isOnRocks() && !hasCutMotors) {
+        isnt_on_rocks_counter++;
+        if (isnt_on_rocks_counter >= 5) {
+            set_motor_speed(0.65, true);
+            set_differential_steering(0.9, false);
+
+            hasCutMotors = true;
+        }
+    } else {
+        isnt_on_rocks_counter = 0;
+    }
+
+    
+
+    
     if (IR_present()) {
         once = false; 
         return IR_FOLLOW;
     }
     if (!hasFinishedTurning) {
-        getPosition();
-        if (getYaw() > 170 || getYaw() < -50) {
-            set_steering(0.5);
+        
+        if (getYaw() > 160) {
+            set_steering(0, false);
+            set_differential_steering(0, false);
             hasFinishedTurning = true;
         } 
     }
 
-    if (millis() - postJumpTimer > 5000) {
+    if (millis() - postJumpTimer > 10000) {
         once = false;
         return ERROR;
     }

@@ -20,8 +20,7 @@ int16_t threshold = 5; //degrees, change of angle that happens when car is on ro
  */
 void imuInit(){
     Wire.begin();
-    Wire.setSCL(I2C_SCL);
-    Wire.setSDA(I2C_SDA);
+
     byte status = mpu.begin();
     mpu.calcOffsets();
 }
@@ -56,6 +55,7 @@ bool isUpwardsAcceleration() {
     if (mpu.getAccX() > 0) {
         return true;
     }
+    
 
     return false;
 }
@@ -101,7 +101,7 @@ int16_t convertToDomain(int16_t angle) {
     }
 
     if (angle < -180) {
-        return 360 - angle;
+        return 360 + angle;
     }
 
     return angle;
