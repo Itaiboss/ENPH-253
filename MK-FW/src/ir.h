@@ -8,14 +8,12 @@
 #include <stdint.h>
 #include <Wire.h>
 #pragma once
-#define IR_READ_RIGHT PA_0   //anlog read pin
-#define IR_READ_LEFT PA_1
-#define IR_READ_EXTREME_LEFT PA_4   //anlog read pin
-#define IR_READ_EXTREME_RIGHT PA_5
-#define IR_RESET PA12    //digital read pin
+
 #define NUM_SAMPLES 32 // number of samples which are being collected.
-#define MOTOR_SLOW_SPEED 0.6
-#define MOTOR_MAX_SPEED 0.8
+#define BOTTOM_FREQUENCY_CUTOFF 900
+#define TOP_FREQUENCY_CUTOFF 1150
+#define MIN_DETECTION_AMPLITUDE 25
+#define EXPECTED_FREQUENCY
 
 void ir_init();
 

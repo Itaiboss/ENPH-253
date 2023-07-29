@@ -15,10 +15,7 @@ double left_ir_reading[NUM_SAMPLES] = {0};
 double right_ir_reading[NUM_SAMPLES] = {0};
 double extreme_left_ir_reading[NUM_SAMPLES] = {0};
 double extreme_right_ir_reading[NUM_SAMPLES] = {0};
-double l_imaginary[NUM_SAMPLES];
-double l_e_imaginary[NUM_SAMPLES];
-double r_e_imaginary[NUM_SAMPLES];
-double r_imaginary[NUM_SAMPLES];
+
 
 uint32_t signalAmplitudeCutOff = 25;
 uint32_t bottom_frequency_cutoff = 950;
@@ -60,24 +57,15 @@ uint32_t outsideWeight = 5;
 uint32_t frequency_check_frequency = 0;
 
 void ir_init() {
-  pinMode(IR_READ_LEFT, INPUT);
-  pinMode(IR_READ_RIGHT, INPUT);
-  pinMode(IR_READ_EXTREME_LEFT, INPUT);
-  pinMode(IR_READ_EXTREME_RIGHT, INPUT);
+  pinMode(IR_R, INPUT);
+  pinMode(IR_L, INPUT);
+  pinMode(IR_E_L, INPUT);
+  pinMode(IR_E_R, INPUT);
   CONSOLE_LOG(LOG_TAG, "Initializing IR");
   doesNeedFrequencyCheck = true;
   trials_since_last_check = 0;
   // gives the default values for 
   
-}
-
-void reset_imaginary() {
-  for(int i = 0; i < NUM_SAMPLES; i++) {
-    l_imaginary[i] = 0;
-    l_e_imaginary[i] = 0;
-    r_e_imaginary[i] = 0;
-    r_imaginary[i] = 0;
-  }
 }
 
 void updateMinAndMax(int l, int r, int l_e, int r_e) {
@@ -113,43 +101,41 @@ void updateMinAndMax(int l, int r, int l_e, int r_e) {
 
 }
 
-uint32_t getFrequency(sensors whichSensor, uint32_t sample_time) {
-
-  reset_imaginary();
-  
-  if (whichSensor == left) {
-      arduinoFFT FFT_left = arduinoFFT(left_ir_reading, l_imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));
-      FFT_left.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
-      FFT_left.Compute(FFT_FORWARD); /* Compute FFT */
-      FFT_left.ComplexToMagnitude(); /* Compute magnitudes */
-      return FFT_left.MajorPeak();
+uint32_t getFrequency(double ir_reading[], uint32_t num_of_samples, uint32_t time) {
+  double imaginary[NUM_SAMPLES];
+  for (int index = 0; index < num_of_samples; index++) {
+    imaginary[index] = 0;
   }
-
-  if (whichSensor == right) {
-    arduinoFFT FFT_right = arduinoFFT(right_ir_reading, r_imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));      
-    FFT_right.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
-    FFT_right.Compute(FFT_FORWARD); /* Compute FFT */
-    FFT_right.ComplexToMagnitude(); /* Compute magnitudes */
-    return FFT_right.MajorPeak();
-  }
-
-  if (whichSensor == extreme_left) {
-    arduinoFFT FFT_right = arduinoFFT(extreme_left_ir_reading, l_e_imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));      
-    FFT_right.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
-    FFT_right.Compute(FFT_FORWARD); /* Compute FFT */
-    FFT_right.ComplexToMagnitude(); /* Compute magnitudes */
-    return FFT_right.MajorPeak();
-  }  
-
-    arduinoFFT FFT_right = arduinoFFT(extreme_right_ir_reading, r_e_imaginary, NUM_SAMPLES, (double) 1/(sample_time*pow(10, -6)));      
-    FFT_right.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
-    FFT_right.Compute(FFT_FORWARD); /* Compute FFT */
-    FFT_right.ComplexToMagnitude(); /* Compute magnitudes */
-    return FFT_right.MajorPeak();
+  arduinoFFT FFT = arduinoFFT(ir_reading, imaginary, NUM_SAMPLES, (double) 1/(time*pow(10, -6)));
+  FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
+  FFT.Compute(FFT_FORWARD); /* Compute FFT */
+  FFT.ComplexToMagnitude(); /* Compute magnitudes */
+  return FFT.MajorPeak();
 }
 
+uint32_t getFrequency(sensors whichSensor, uint32_t sample_time) {
+
+  switch (whichSensor) {
+    case left: 
+      return getFrequency(left_ir_reading, NUM_SAMPLES, sample_time);
+    case right: 
+      return getFrequency(right_ir_reading, NUM_SAMPLES, sample_time);
+    case extreme_left: 
+      return getFrequency(extreme_left_ir_reading, NUM_SAMPLES, sample_time);
+    case extreme_right: 
+      return getFrequency(extreme_right_ir_reading, NUM_SAMPLES, sample_time);
+  }
+  
+}
+
+
+
+
+
+
+
 bool isFrequencyValid(uint32_t frequency) {
-  return frequency < top_frequency_cutoff && frequency > bottom_frequency_cutoff;
+  return frequency < TOP_FREQUENCY_CUTOFF && frequency > BOTTOM_FREQUENCY_CUTOFF;
 }
 
 
@@ -164,10 +150,10 @@ bool IR_present() {
 
   for (int i = 0; i < NUM_SAMPLES; i++) {
     timer = micros();
-    left_ir_reading[i] = analogRead(IR_READ_LEFT);
-    right_ir_reading[i] = analogRead(IR_READ_RIGHT);
-    extreme_left_ir_reading[i] = analogRead(IR_READ_EXTREME_LEFT);
-    extreme_right_ir_reading[i] = analogRead(IR_READ_EXTREME_RIGHT);
+    left_ir_reading[i] = analogRead(IR_L);
+    right_ir_reading[i] = analogRead(IR_R);
+    extreme_left_ir_reading[i] = analogRead(IR_E_L);
+    extreme_right_ir_reading[i] = analogRead(IR_E_R);
 
     updateMinAndMax(left_ir_reading[i],
      right_ir_reading[i],
@@ -188,25 +174,28 @@ bool IR_present() {
 
 
   if (isFrequencyValid(left_frequency)) {
-    if (left_max_val - left_min_val > signalAmplitudeCutOff) {
+    if (left_max_val - left_min_val > MIN_DETECTION_AMPLITUDE) {
       resetMaximums();
       return true;
     }
   }
+
   if (isFrequencyValid(right_frequency)) {
-    if (right_max_val - right_min_val > signalAmplitudeCutOff) {
+    if (right_max_val - right_min_val > MIN_DETECTION_AMPLITUDE) {
       resetMaximums();
       return true;
     }
   }
+
   if (isFrequencyValid(left_extreme_frequency)) {
-    if (extreme_left_max_val - extreme_left_min_val > signalAmplitudeCutOff) {
+    if (extreme_left_max_val - extreme_left_min_val > MIN_DETECTION_AMPLITUDE) {
       resetMaximums();
       return true;
     }
   }
+
   if (isFrequencyValid(right_extreme_frequency)) {
-    if (extreme_right_max_val - extreme_right_min_val > signalAmplitudeCutOff) {
+    if (extreme_right_max_val - extreme_right_min_val > MIN_DETECTION_AMPLITUDE) {
       resetMaximums();
       return true;
     }
@@ -228,10 +217,10 @@ void ir_PID() {
 
   for (int i = 0; i < NUM_SAMPLES; i++) {
     timer = micros();
-    left_ir_reading[i] = analogRead(IR_READ_LEFT);
-    right_ir_reading[i] = analogRead(IR_READ_RIGHT);
-    extreme_left_ir_reading[i] = analogRead(IR_READ_EXTREME_LEFT);
-    extreme_right_ir_reading[i] = analogRead(IR_READ_EXTREME_RIGHT);
+    left_ir_reading[i] = analogRead(IR_L);
+    right_ir_reading[i] = analogRead(IR_R);
+    extreme_left_ir_reading[i] = analogRead(IR_E_L);
+    extreme_right_ir_reading[i] = analogRead(IR_E_R);
 
     // CONSOLE_LOG(LOG_TAG, "l: %i, r: %i, le: %i, re: %i", (int) left_ir_reading[i], (int) right_ir_reading[i], (int) extreme_left_ir_reading[i], (int) extreme_right_ir_reading[i]);
 
@@ -389,6 +378,7 @@ void resetMaximums() {
   extreme_right_max_val = 0;
   extreme_right_min_val = 1024;
 }
+
 
 
 
