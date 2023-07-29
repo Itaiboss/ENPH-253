@@ -380,7 +380,7 @@ StateMachine::state StateMachine::jumpState() {
         current_jump_state = onTape;
     }
 
-    current_jump_state = preform(current_jump_state);
+    current_jump_state = perform(current_jump_state);
 
     if (current_jump_state == isIRReady) {
         return IR_FOLLOW;

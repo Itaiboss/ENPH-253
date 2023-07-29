@@ -42,7 +42,7 @@ void setup() {
   ir_init();
   pinMode(ZERO, INPUT);
   pinMode(LEFT_MOTOR_FORWARD, OUTPUT);
-  pinMode(LEFT_MOTOR_BACKWARD, OUTPUT);//breaks imu
+  pinMode(LEFT_MOTOR_BACKWARD, OUTPUT);
   pinMode(RIGHT_MOTOR_FORWARD, OUTPUT);
   pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
   imuInit();
@@ -117,7 +117,7 @@ void loop() {
 
 
 
-  // jumpState = preform(jumpState);
+  // jumpState = perform(jumpState);
 
 
   
@@ -192,7 +192,7 @@ BLOCK 4:
 BLOCK 5: more complicated jump sequence. 
 */
 
-// jumpState = preform(jumpState);
+// jumpState = perform(jumpState);
 
 // if (jumpState == onGround) {
 //   set_motor_speed(0.9, true);

@@ -30,7 +30,7 @@
 
 enum JumpState { onTape, offTape, inAir, onGround, isLost, isIRReady };
 
-JumpState preform(JumpState current_state);
+JumpState perform(JumpState current_state);
 
 JumpState get_next_state(JumpState current_state);
 
