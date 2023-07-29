@@ -34,7 +34,7 @@ int32_t min_control = RIGHT_MAX;
 int32_t diff = 0;
 int32_t integral_max = 250;
 int32_t integral_min = 250;
-const double lookup[2][2] = {{5,-1}, {1,0}}; // l,r
+const double lookup[2][2] = {{5,1}, {-1,0}}; // l,r
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
@@ -52,9 +52,9 @@ void PID() {
         int32_t error = 0;
         if (sense_r == 0 && sense_l == 0) {
             if (last_l == 1) {
-                error = lookup[sense_r][sense_l]*-1;
-            } else if (last_r == 1) {
                 error = lookup[sense_r][sense_l];
+            } else if (last_r == 1) {
+                error = lookup[sense_r][sense_l]*-1;
             } else {
                 error = last_error;
             }
@@ -95,7 +95,7 @@ void PID() {
             //set_differential_steering(.5, false);
         }
     } else {
-        set_motor_speed(.55, true);
+        set_motor_speed(65);
     }
 }
 

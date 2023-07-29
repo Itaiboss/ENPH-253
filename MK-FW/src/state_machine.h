@@ -6,8 +6,28 @@
 #include <stdint.h>
 #include <string>
 
-#define START_HARDCODE_LENGTH 2000
-#define LOST_MODE_OSCILLATION_TIME 1000;
+// Settings for the start State
+#define START_SPEED 70
+#define START_TURNING_ANGLE 40
+#define START_GYRO_CUTOFF 80
+#define TIME_UNTIL_LOST_MODE 500 // millis
+
+// Modifications for the IR lost mode 
+#define IR_LOST_MODE_OSCILLATION_TIME 1000 //millis
+
+// Modification for the post rocks motor control 
+#define POST_ROCKS_TURN_ANGLE 20
+#define POST_ROCKS_MOTOR_SPEED 60
+
+// Settings for how the sensitive should be to the isOnRocks function. 
+#define NUMBER_OF_NON_ROCKS_NEEDED 5
+#define NUMBER_OF_ROCKS_NEEDED 3
+
+// How long will search for tape inside the IR functiom
+#define SEARCH_FOR_TAPE_TIME 1000 //millis
+
+// How long should we turn in one direction when looking for tape near the IR beacon. 
+#define TAPE_SEARCHING_MODE_MAX_ONE_DIRECTION_TURN 1000 // millis
 
 class StateMachine {
  public:
@@ -17,11 +37,12 @@ class StateMachine {
     enum state {
         UNKNOWN                 =   0,
         START                   =   1,
-        TAPE_FOLLOW_1            = 100,
-        TAPE_FOLLOW_2            = 101,
+        TAPE_FOLLOW_1           = 100,
+        TAPE_FOLLOW_2           = 101,
         IR_FOLLOW               = 103,
         JUMP                    = 104,
-        POST_JUMP               = 105,
+        TAPE_SEARCH             = 105,
+        
         ERROR                   = 900,
     };
 
@@ -66,8 +87,8 @@ class StateMachine {
     state errorState();
     state initState();
     state startState();
-    state postJumpState();
     state jumpState();
+    state tapeSearchState();
     private:
     // Previous, current and next state trackers
     volatile state prev_state;

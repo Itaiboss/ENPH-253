@@ -15,7 +15,7 @@
 #define IR_RESET PA12    //digital read pin
 #define NUM_SAMPLES 32 // number of samples which are being collected.
 #define MOTOR_SLOW_SPEED 0.6
-#define MOTOR_MAX_SPEED 0.93
+#define MOTOR_MAX_SPEED 0.8
 
 void ir_init();
 

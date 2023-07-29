@@ -3,9 +3,10 @@
 
 #define MOTOR_CONTROL_FREQUENCY 1000
 
-void set_motor_speed(double speed, bool forward);
+void set_motor_speed(int32_t speed);
+void cut_motors();
+void set_differential_steering(int32_t difference);
 
-void set_differential_steering(double difference, bool right);
-
-void set_steering(double turning_value, bool right);
-void set_steering(uint32_t pwm_value);
+void set_steering(int32_t turning_value);
+void set_raw_steering(uint32_t pwm_value);
+void centre_steering();

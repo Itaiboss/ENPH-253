@@ -27,7 +27,7 @@ uint32_t top_frequency_cutoff = 1150;
 bool doesNeedFrequencyCheck = true;
 uint32_t trials_since_last_check = 0;
 
-double bias = 0.9;
+double bias = 0.95;
 
 
 // A one kilohertz sine wave.
@@ -296,13 +296,13 @@ void ir_PID() {
   CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
 
   if (left_amplitude < signalAmplitudeCutOff && right_amplitude < signalAmplitudeCutOff && left_extreme_ampltude < signalAmplitudeCutOff && right_extreme_amplitude < signalAmplitudeCutOff) {
-    set_motor_speed(MOTOR_SLOW_SPEED, false);
+    // set_motor_speed(MOTOR_SLOW_SPEED, false);
     CONSOLE_LOG(LOG_TAG, "Nothing detected");
   } else if (left_amplitude + right_amplitude > 700) {
-    set_motor_speed(0.6, false);
+    // set_motor_speed(0.6, false);
     CONSOLE_LOG(LOG_TAG, "Things Are detected");
   } else {
-    set_motor_speed(MOTOR_MAX_SPEED, false);
+    // set_motor_speed(MOTOR_MAX_SPEED, false);
   }
 
 

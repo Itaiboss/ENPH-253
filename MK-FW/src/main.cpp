@@ -24,6 +24,8 @@
 static const char* LOG_TAG = "MAIN";
 extern StateMachine state_machine;
 JumpState jumpState = onTape;
+uint32_t start_time_main = 0;
+bool has_finished = false;
 
 
 void setup() {
@@ -39,19 +41,63 @@ void setup() {
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
-  pinMode(MOTOR_1A, OUTPUT);
-  pinMode(MOTOR_1B, OUTPUT);//breaks imu
-  pinMode(MOTOR_2A, OUTPUT);
-  pinMode(MOTOR_2B, OUTPUT);
+  pinMode(LEFT_MOTOR_FORWARD, OUTPUT);
+  pinMode(LEFT_MOTOR_BACKWARD, OUTPUT);//breaks imu
+  pinMode(RIGHT_MOTOR_FORWARD, OUTPUT);
+  pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
   imuInit();
-  // set_motor_speed(0.6, true);
-  set_steering(0, true);
   storePosition();
+  start_time_main = millis();
+
+  /* 
+  BLOCK 1. IR_PID
+  */
+  
+  set_motor_speed(80);
+
+  /*
+  BLOCK 2. TAPE FOLLOW 
+  */
+
+
+
+
+
+ /*
+ BLOCK 3. JUMP SEQUENCE. 
+ */
+
+// set_motor_speed(0.9, true);
+// set_steering(0, false);
+
+
+/*
+BLOCK 4:  
+*/
+
+  // storePosition();
+  // set_raw_steering(300);
+  // set_motor_speed(0.65, true);
+  // has_finished = false;
+
+
+/*
+BLOCK 5: more complicated jump sequence. 
+*/
+// jumpState = onTape;
 }
 
-bool once_loop = false;
+
+
+
+// bool once= false;
+
+
 
 void loop() {
+  // set_raw_steering(MID_POINT);
+
+
   //PID();
 
   //state_machine.determineState();
@@ -92,9 +138,69 @@ void loop() {
 
   // }
 
-  state_machine.determineState();
+  // state_machine.determineState();
+
+  
+
+  
+  /* 
+  BLOCK 1. IR_PID
+  */
+  
+  ir_PID();
+
+  /*
+  BLOCK 2. TAPE FOLLOW 
+  */
+
+//  PID();
+
+ /*
+ BLOCK 3. JUMP SEQUENCE. 
+ */
+// if (once_loop) {
+//   if (millis() - start_time_main > 4000) {
+//     set_motor_speed(0, false);
+//     set_raw_steering(300);
+//     once_loop = false;
+//   }
+// }
+
+/*
+BLOCK 4:  
+*/
 
 
+
+
+// if(millis() - start_time_main > 900) {
+//   set_motor_speed(0.7, true);
+//   has_finished = true;
+//   set_raw_steering(MID_POINT);
+// }
+
+// if(has_finished) {
+//   ir_PID();
+// }
+
+
+
+
+
+
+/*
+BLOCK 5: more complicated jump sequence. 
+*/
+
+// jumpState = preform(jumpState);
+
+// if (jumpState == onGround) {
+//   set_motor_speed(0.9, true);
+//   set_raw_steering(300);
+// }
+
+// getPosition();
+// CONSOLE_LOG(LOG_TAG, "roll: %i, pitch: %i, yaw: %i, on rocks: %d", getRoll(), getPitch(), getYaw(), isOnRocks());
 
 
 
@@ -104,5 +210,8 @@ void loop() {
 
 
   
+
+    
+
   
 }

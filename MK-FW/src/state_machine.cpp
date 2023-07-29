@@ -25,9 +25,13 @@ StateMachine state_machine;
 uint32_t start_time;
 uint32_t rock_step;
 JumpState current_jump_state = onTape;
-uint32_t startTime = 0;
+uint32_t notOnRocksCounter = 0;
+uint32_t onRocksCounter = 0;
+uint32_t searching_for_tape_timer;
+uint32_t lost_tape_timer;
+
 bool direction_flip = true;
-uint32_t numOfConsececutiveNonRocks = 10;
+
 
 StateMachine::StateMachine() {
 }
@@ -38,7 +42,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = TAPE_FOLLOW_2;
+    curr_state = START;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -52,6 +56,9 @@ std::string StateMachine::getStateString(StateMachine::state) {
     switch (state_machine.getCurrentState()) {
         case TAPE_FOLLOW_1:
             state = "TAPE_FOLLOW_1";
+            break;
+        case TAPE_SEARCH:
+            state = "TAPE_SEARCH";
             break;
         case TAPE_FOLLOW_2:
             state = "TAPE_FOLLOW_2";
@@ -96,8 +103,8 @@ void StateMachine::determineState() {
         case JUMP:
             next_state = jumpState();
             break;
-        case POST_JUMP:
-            next_state = postJumpState();
+        case TAPE_SEARCH:
+            next_state = tapeSearchState();
         case UNKNOWN:
         default:
             next_state = startState();
@@ -109,26 +116,30 @@ void StateMachine::determineState() {
             prev_state = curr_state;
         }
         curr_state = next_state;
+        // reset the once here to double check that is has been set in the function. 
+        once = false;
     }
 }
 
 
 bool turnComplete = false;
-uint32_t start_startTime = 0;
+uint32_t completed_turn_time = 0;
 
 
 StateMachine::state StateMachine::startState() {
     // on the first run it will set a hard turn to the right or left based on the starting position. HIGH means starting on the left side. 
     if (!once) {
-        startTime = millis();
+        
         turnComplete = false;
-        set_motor_speed(0.8, true);
+        set_motor_speed(START_SPEED);
+        // start on the left so we need a right turn
         if (START_SIDE == HIGH) {
-            set_steering(0, true);
+            set_steering(-START_TURNING_ANGLE);
         } else {
-            set_steering(0, false);
+            // START ON right
+            set_steering(START_TURNING_ANGLE);
         }
-        start_time = millis();
+        
         storePosition();
         once = true; 
     } 
@@ -139,15 +150,17 @@ StateMachine::state StateMachine::startState() {
         getPosition();
         if (START_SIDE == HIGH) {
             // this line of code coule be very buggy, it is meant to say that stop once you have turned 90 degrees to the right. 
-            if (getYaw() < -80) {
-                set_steering(0, true);
+            if (getYaw() < -START_GYRO_CUTOFF) {
+                centre_steering();
                 turnComplete = true;
+                completed_turn_time = millis() ;
             }
         } else {
             // same as above but now we are stopping once we have turned 90 degrees to the left. 
-            if (getYaw() > 80) {
-                set_steering(0, true);
+            if (getYaw() > START_GYRO_CUTOFF) {
+                centre_steering();
                 turnComplete = true;
+                completed_turn_time = millis();
             }
         }
     }
@@ -160,8 +173,7 @@ StateMachine::state StateMachine::startState() {
         return IR_FOLLOW;
     } 
 
-    if (millis() - start_startTime > START_HARDCODE_LENGTH) {
-        CONSOLE_LOG(LOG_TAG, "Unknown state has been reached.");
+    if (millis() - completed_turn_time > TIME_UNTIL_LOST_MODE) {
         once = false;
         return ERROR;
     }
@@ -170,9 +182,8 @@ StateMachine::state StateMachine::startState() {
 }
 
 
-uint32_t notOnRocksCounter = 0;
-uint32_t onRocksCounter = 0;
-uint32_t howRocksAreNeeded = 4;
+
+
 
 
 
@@ -185,72 +196,175 @@ StateMachine::state StateMachine::irState() {
         onRocksCounter = 0;
     }
 
-    ir_PID();
-    getPosition();
-    bool on_rocks = isOnRocks();
+    
     // enter this block when we are on the rocks. 
-    if (on_rocks && rock_step == 0) {
-        onRocksCounter++;
+    if (rock_step == 0) {
+        ir_PID();
+        getPosition();
+        
+        if (isOnRocks) {
+            onRocksCounter++;
+        }
         // only continue to the next steps once multiple trials have been completed. 
-        if (onRocksCounter == howRocksAreNeeded) {
+        if (onRocksCounter == NUMBER_OF_ROCKS_NEEDED) {
             rock_step = 1;
         }
     }
 
-    if (!on_rocks && rock_step == 1) {
+    if (rock_step == 1) {
+        ir_PID();
+        getPosition();
+
+        if (isOnRocks) {
+            notOnRocksCounter++;
+        } else {
+            notOnRocksCounter = 0;
+        }
         // increment a consecetive not on rocks counter. 
-        notOnRocksCounter++;
+        
 
         // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
 
-        if(notOnRocksCounter == numOfConsececutiveNonRocks) {
-            once = false;
+        if(notOnRocksCounter == NUMBER_OF_NON_ROCKS_NEEDED) {
             // may need to be adjusted as needed. 
-            set_steering(0.2, false);
+            set_steering(POST_ROCKS_MOTOR_SPEED);
+            set_motor_speed(POST_ROCKS_MOTOR_SPEED);
+            searching_for_tape_timer = millis();
+            rock_step = 2;
+        }
+    }
+
+    if (rock_step == 2) {
+        // will need to be changed when add the more sensors. 
+        uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R};
+        if (!is_all_sensors_low(allCentralTapeSensors, 2)) {
+            once = false;
             return TAPE_FOLLOW_2;
         }
-        // if (getDistance() < IR_BEACON_DIST) {
-        //     set_steering(0.25);
-        //     once = false;
-        //     return TAPE_FOLLOW_2;
-        // }
 
-        // will need to add this in once sonar is up and running. not even sure if it is needed. 
+        uint32_t allOutsideTapeSensors[] = {TAPE_E_L, TAPE_E_R};
 
-        
-    } else {
-        notOnRocksCounter = 0;
+        if (!is_all_sensors_low(allOutsideTapeSensors, 2)) {
+            once = false;
+            return TAPE_SEARCH;
 
+        }
+
+        if (millis() - searching_for_tape_timer > SEARCH_FOR_TAPE_TIME) {
+            once = false; 
+            return TAPE_SEARCH;
+        }
     }
 
     return IR_FOLLOW; 
 }
 
-//currently is not used. 
+//currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
     PID();
+}
+
+bool isRightActive;
+bool isLeftActive;
+/* current_turn_index refers to 
+* 0 -> random direction
+* 1 -> left turn max
+* 2 -> right turn max
+*/
+uint32_t current_turn_index;
+bool isRandomDirectionRight;
+
+// this needs a comprehensive review. It is really hard set of logic to follow. 
+StateMachine::state StateMachine::tapeSearchState() {
+
+    isRightActive = digitalRead(TAPE_E_R);
+    isLeftActive = digitalRead(TAPE_E_L);
+
+    if (!once) {
+        lost_tape_timer = millis();
+        isRandomDirectionRight = false;
+        current_turn_index = 0;
+
+        if ((isRightActive && isLeftActive) || (!isRightActive && !isLeftActive)) {
+            set_motor_speed(75);
+            set_differential_steering(isRandomDirectionRight ? -45 : 45);
+            current_turn_index = 0;
+        }
+        once = false;
+        
+    }
+
+    // if only one of the sensors are active then we should try to max steer (on our own spot to find the tape).    
+    if (isRightActive && !isLeftActive) {
+        // max turn to the right
+        set_motor_speed(70);
+        set_differential_steering(-100);
+        // sets the current index to what is happening 
+        current_turn_index = 2;
+        lost_tape_timer = millis();
+    } else if (isLeftActive ) {
+        set_motor_speed(70);
+        set_differential_steering(100);
+        // sets the current index to what is happening 
+        current_turn_index = 1;
+        lost_tape_timer = millis();
+    }
+
+    // if an amount of time 
+
+    if (millis() - lost_tape_timer > TAPE_SEARCHING_MODE_MAX_ONE_DIRECTION_TURN) {
+        switch(current_turn_index) {
+        case 0:
+            isRandomDirectionRight = isRandomDirectionRight ? false : true;
+            break;
+        case 1: 
+        // we were jus turning left so we should try the other direction. 
+            isRandomDirectionRight = true;
+            break;
+        case 2: 
+        // we were jus turning right so we should try the other direction. 
+            isRandomDirectionRight = false;
+            break;
+        }
+
+        set_motor_speed(75);
+        set_differential_steering(isRandomDirectionRight ? -45 : 45);
+    }
+
+    // will need to be changed when add the more sensors. 
+    uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R};
+    if (!is_all_sensors_low(allCentralTapeSensors, 2)) {
+        once = false;
+        return TAPE_FOLLOW_2;
+    }
+
+    return TAPE_SEARCH;
 }
 
 int follow_step = 0;
 
 StateMachine::state StateMachine::tapeFollowState2() {
+
+    if(!once) {
+        follow_step = 0;
+    }
+
     PID();
     // this block handles before you have hit the first marker. 
-    // if (follow_step == 0) {
-    //     if (digitalRead(TAPE_E_R) && !digitalRead(TAPE_E_L)) { //maybe needs extra error correction to make sure the others are still on the tape. 
-    //         follow_step = 1;
-    //         // zeros the position 
-    //         getPosition();
-    //         storePosition();
-    //     }
-    //     return TAPE_FOLLOW_2;
-    // } 
+    if (follow_step == 0) {
+        if (digitalRead(TAPE_E_L) && !digitalRead(TAPE_E_R)) { //maybe needs extra error correction to make sure the others are still on the tape. 
+            follow_step = 1;
+            // zeros the position 
+            getPosition();
+            storePosition();
+        }
+        return TAPE_FOLLOW_2;
+    } 
 
     // this block handles before you have hit the second marker. 
     if (follow_step == 1) {
-        if (digitalRead(TAPE_E_R) && ((digitalRead(TAPE_L) || digitalRead(TAPE_R)))) {
+        if (digitalRead(TAPE_E_L) && digitalRead(TAPE_E_R) && ((digitalRead(TAPE_L) || digitalRead(TAPE_R)))) {
             follow_step = 0;
-            current_jump_state = onTape;
             return JUMP;
         }
     }
@@ -260,117 +374,36 @@ StateMachine::state StateMachine::tapeFollowState2() {
 
 StateMachine::state StateMachine::jumpState() {
 
+
+    // if this if the first call the starting state should be onTape. 
+    if(!once) {
+        current_jump_state = onTape;
+    }
+
     current_jump_state = preform(current_jump_state);
 
-    if (current_jump_state == onGround) {
-        current_jump_state = onTape;
-        return POST_JUMP;
-    } 
-    
+    if (current_jump_state == isIRReady) {
+        return IR_FOLLOW;
+    }
+
+    if (current_jump_state == isLost) {
+        return ERROR;
+    }
+
     return JUMP;
 
 }
 
-bool hasFinishedTurning = false;
-
-uint32_t postJumpTimer = 0;
-
-uint32_t isnt_on_rocks_counter = 0;
-uint32_t hasCutMotors = false;
-
-StateMachine::state StateMachine::postJumpState() {
-
-    // we are assuming that we will not fall off the edge in the case of failure. 
-    if (!once) {
-        postJumpTimer = millis();
-        getPosition();
-        set_steering(350);
-        set_motor_speed(0.85, true);
-        hasFinishedTurning = false;
-        once = true;
-        isnt_on_rocks_counter = 0;
-    }
-
-    getPosition();
-
-    if (!isOnRocks() && !hasCutMotors) {
-        isnt_on_rocks_counter++;
-        if (isnt_on_rocks_counter >= 5) {
-            set_motor_speed(0.65, true);
-            set_differential_steering(0.9, false);
-
-            hasCutMotors = true;
-        }
-    } else {
-        isnt_on_rocks_counter = 0;
-    }
-
-    
-
-    
-    if (IR_present()) {
-        once = false; 
-        return IR_FOLLOW;
-    }
-    if (!hasFinishedTurning) {
-        
-        if (getYaw() > 160) {
-            set_steering(0, false);
-            set_differential_steering(0, false);
-            hasFinishedTurning = true;
-        } 
-    }
-
-    if (millis() - postJumpTimer > 10000) {
-        once = false;
-        return ERROR;
-    }
-}
-
-    // bool is_on_rocks = isOnRocks();
-    // getPosition();
-
-    // if(findSonar && getDistance() < MIN_SONAR_DIST){
-    //     //cut motor, slow down
-    // }
-    // else if(findSonar && getDistance() < minDistance){
-    //     //turn LEFT, turn on tape sensors to find tape
-    //     //tape sensor shouldn't actually turn on until tape is detected somewhere, then it'll effect the steering
-    // }
-
-    // //else if(!IRdetected)
-    // {
-    //     //for overshoot, going to fall off short edge of course
-    //     if(!isPresent() && !rock){//front sonar
-    //         //cut motor, reverse
-    //     }
-    //     //for angle too far right, going to fall off long edge by rocks
-    //     else if(getYaw() > 10){
-    //         //cut motor, reverse
-    //     }
-    //     else if(isPresent){
-    //         //adjust turn to be slightly more centre
-    //     }
-    //     else{
-    //         //turn LEFT
-    //     }
-    // }
-    // //else if(IRdetected), ir follow state
-    // {
-    //     //turn to centre and go to beacon
-    //     if(rock){
-    //         findSonar = true; //turn on front sonar
-    //     }
-
-    // }
-
 
 StateMachine::state StateMachine::errorState() {
+
+    // complete a spin in different direction trying to pick up the IR beacon. 
+    // i don't think we should be looking for tape becuase that would completly fuck with our sequencing. We would be as good as lost at that point -Logan
     if(!once) {
         start_time = millis();
-        set_motor_speed(0.6, true);
+        set_motor_speed(70);
         once = true; 
-        set_differential_steering(1, direction_flip);
+        set_differential_steering(direction_flip ? 100 : -100);
     }
 
     if(IR_present()) {
@@ -378,18 +411,11 @@ StateMachine::state StateMachine::errorState() {
         return IR_FOLLOW;
     }
 
-    if (millis() > LOST_MODE_OSCILLATION_TIME + start_time) {
+    if (millis() > IR_LOST_MODE_OSCILLATION_TIME + start_time) {
         once = false; 
-        if (direction_flip) { 
-            direction_flip = false;
-        } else {
-            direction_flip = true;
-        }
+        direction_flip = direction_flip ? false : true;
         return ERROR;
     }
 
     return ERROR;
-
-
-
 }

@@ -11,15 +11,15 @@
  */
 // pin definitions
 #define SERVO PA_2
-#define MOTOR_1A PA_6
-#define MOTOR_1B PA_3
-#define MOTOR_2A PB_8
-#define MOTOR_2B PB_9
+#define LEFT_MOTOR_FORWARD PA_6
+#define LEFT_MOTOR_BACKWARD PA_3
+#define RIGHT_MOTOR_FORWARD PB_8
+#define RIGHT_MOTOR_BACKWARD PB_9
 #define I2C_SDA PB7
 #define I2C_SCL PB6
 #define ZERO PB4
-#define TAPE_L PA11
-#define TAPE_R PA12
+#define TAPE_L PA12
+#define TAPE_R PA11
 #define TAPE_E_L PB14
 #define TAPE_E_R PB15
 #define IR_R PA0
