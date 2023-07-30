@@ -42,7 +42,7 @@ volatile double motorSpeed = 0;
 void set_motor_speed(int32_t speed) {
     if (speed > 0) {
         pwm_start(LEFT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
-        pwm_start(RIGHT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 10 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
     } else if (speed < 0) {
         pwm_start(LEFT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, - (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(RIGHT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, - (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);

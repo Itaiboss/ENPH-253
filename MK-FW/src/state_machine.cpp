@@ -29,6 +29,8 @@ uint32_t notOnRocksCounter = 0;
 uint32_t onRocksCounter = 0;
 uint32_t searching_for_tape_timer;
 uint32_t lost_tape_timer;
+uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R};
+uint32_t allOutsideTapeSensors[] = {TAPE_E_L, TAPE_E_R};
 
 bool direction_flip = true;
 
@@ -139,8 +141,8 @@ StateMachine::state StateMachine::startState() {
             // START ON right
             set_steering(START_TURNING_ANGLE);
         }
-        
         storePosition();
+        completed_turn_time = millis() ;
         once = true; 
     } 
 
@@ -153,23 +155,18 @@ StateMachine::state StateMachine::startState() {
             if (getYaw() < -START_GYRO_CUTOFF) {
                 centre_steering();
                 turnComplete = true;
-                completed_turn_time = millis() ;
             }
         } else {
             // same as above but now we are stopping once we have turned 90 degrees to the left. 
             if (getYaw() > START_GYRO_CUTOFF) {
                 centre_steering();
                 turnComplete = true;
-                completed_turn_time = millis();
             }
         }
     }
-
     // if IR is present we send it to the ir follow state. 
-
     if (IR_present()) {
         once = false; 
-
         return IR_FOLLOW;
     } 
 
@@ -177,6 +174,7 @@ StateMachine::state StateMachine::startState() {
         once = false;
         return ERROR;
     }
+    //TODO: Investigate need for tape following if IR is not seen.
 
     return START;
 }
@@ -196,13 +194,11 @@ StateMachine::state StateMachine::irState() {
         onRocksCounter = 0;
     }
 
-    
     // enter this block when we are on the rocks. 
     if (rock_step == 0) {
         ir_PID();
         getPosition();
-        
-        if (isOnRocks) {
+        if (isOnRocks()) {
             onRocksCounter++;
         }
         // only continue to the next steps once multiple trials have been completed. 
@@ -214,40 +210,31 @@ StateMachine::state StateMachine::irState() {
     if (rock_step == 1) {
         ir_PID();
         getPosition();
-
         if (isOnRocks) {
             notOnRocksCounter++;
         } else {
             notOnRocksCounter = 0;
         }
         // increment a consecetive not on rocks counter. 
-        
-
         // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
-
         if(notOnRocksCounter == NUMBER_OF_NON_ROCKS_NEEDED) {
             // may need to be adjusted as needed. 
-            set_steering(POST_ROCKS_MOTOR_SPEED);
+            set_steering(POST_ROCKS_TURN_ANGLE);
             set_motor_speed(POST_ROCKS_MOTOR_SPEED);
             searching_for_tape_timer = millis();
             rock_step = 2;
         }
     }
-
     if (rock_step == 2) {
         // will need to be changed when add the more sensors. 
-        uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R};
         if (!is_all_sensors_low(allCentralTapeSensors, 2)) {
             once = false;
             return TAPE_FOLLOW_2;
         }
 
-        uint32_t allOutsideTapeSensors[] = {TAPE_E_L, TAPE_E_R};
-
         if (!is_all_sensors_low(allOutsideTapeSensors, 2)) {
             once = false;
             return TAPE_SEARCH;
-
         }
 
         if (millis() - searching_for_tape_timer > SEARCH_FOR_TAPE_TIME) {
@@ -255,7 +242,6 @@ StateMachine::state StateMachine::irState() {
             return TAPE_SEARCH;
         }
     }
-
     return IR_FOLLOW; 
 }
 
@@ -302,7 +288,7 @@ StateMachine::state StateMachine::tapeSearchState() {
         // sets the current index to what is happening 
         current_turn_index = 2;
         lost_tape_timer = millis();
-    } else if (isLeftActive ) {
+    } else if (isLeftActive) {
         set_motor_speed(70);
         set_differential_steering(100);
         // sets the current index to what is happening 
@@ -326,13 +312,11 @@ StateMachine::state StateMachine::tapeSearchState() {
             isRandomDirectionRight = false;
             break;
         }
-
         set_motor_speed(75);
         set_differential_steering(isRandomDirectionRight ? -45 : 45);
     }
 
     // will need to be changed when add the more sensors. 
-    uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R};
     if (!is_all_sensors_low(allCentralTapeSensors, 2)) {
         once = false;
         return TAPE_FOLLOW_2;
@@ -347,27 +331,28 @@ StateMachine::state StateMachine::tapeFollowState2() {
 
     if(!once) {
         follow_step = 0;
+        storePosition();
     }
-
     PID();
+    getPosition();
     // this block handles before you have hit the first marker. 
     if (follow_step == 0) {
-        if (digitalRead(TAPE_E_L) && !digitalRead(TAPE_E_R)) { //maybe needs extra error correction to make sure the others are still on the tape. 
+        //TODO: add checks for all central sensors
+        if (digitalRead(TAPE_E_L) && !digitalRead(TAPE_E_R)|| getPitch()>=15) { //maybe needs extra error correction to make sure the others are still on the tape. 
             follow_step = 1;
             // zeros the position 
-            getPosition();
-            storePosition();
         }
-        return TAPE_FOLLOW_2;
     } 
-
     // this block handles before you have hit the second marker. 
     if (follow_step == 1) {
+        //TODO:ADD gyro check as well
         if (digitalRead(TAPE_E_L) && digitalRead(TAPE_E_R) && ((digitalRead(TAPE_L) || digitalRead(TAPE_R)))) {
             follow_step = 0;
+            storePosition();
             return JUMP;
         }
     }
+    return TAPE_FOLLOW_2;
 }
 
 
@@ -411,7 +396,7 @@ StateMachine::state StateMachine::errorState() {
         return IR_FOLLOW;
     }
 
-    if (millis() > IR_LOST_MODE_OSCILLATION_TIME + start_time) {
+    if (millis()- IR_LOST_MODE_OSCILLATION_TIME >= start_time) {
         once = false; 
         direction_flip = direction_flip ? false : true;
         return ERROR;

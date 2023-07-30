@@ -21,11 +21,10 @@ uint32_t signalAmplitudeCutOff = 25;
 uint32_t bottom_frequency_cutoff = 950;
 uint32_t expected_frequency = 1000;
 uint32_t top_frequency_cutoff = 1150;
-bool doesNeedFrequencyCheck = true;
+bool does_need_frequency_check = true;
 uint32_t trials_since_last_check = 0;
 
 double bias = 0.95;
-
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -36,8 +35,6 @@ uint32_t extreme_left_max_val = 0;
 uint32_t extreme_left_min_val = 1024;
 uint32_t extreme_right_max_val = 0;
 uint32_t extreme_right_min_val = 1024;
-
-
 
 // the following variables are used to track the 
 // different prop, derivative, and integral error terms. 
@@ -62,7 +59,7 @@ void ir_init() {
   pinMode(IR_E_L, INPUT);
   pinMode(IR_E_R, INPUT);
   CONSOLE_LOG(LOG_TAG, "Initializing IR");
-  doesNeedFrequencyCheck = true;
+  does_need_frequency_check = true;
   trials_since_last_check = 0;
   // gives the default values for 
   
@@ -127,13 +124,6 @@ uint32_t getFrequency(sensors whichSensor, uint32_t sample_time) {
   }
   
 }
-
-
-
-
-
-
-
 bool isFrequencyValid(uint32_t frequency) {
   return frequency < TOP_FREQUENCY_CUTOFF && frequency > BOTTOM_FREQUENCY_CUTOFF;
 }
@@ -164,8 +154,6 @@ bool IR_present() {
   }
 
   sample_time = sample_time / NUM_SAMPLES;
-  
-
   
   double left_frequency = getFrequency(left, sample_time);
   double right_frequency = getFrequency(right, sample_time);
@@ -248,16 +236,16 @@ void ir_PID() {
     left_extreme_frequency = getFrequency(extreme_left, sample_time);
     right_extreme_frequency = getFrequency(extreme_right, sample_time);
 
-  // if (doesNeedFrequencyCheck) {
+  // if (does_need_frequency_check) {
   //   left_frequency = getFrequency(left, sample_time);
   //   right_frequency = getFrequency(right, sample_time);
   //   left_extreme_frequency = getFrequency(extreme_left, sample_time);
   //   right_extreme_frequency = getFrequency(extreme_right, sample_time);
-  //   doesNeedFrequencyCheck = false;
+  //   does_need_frequency_check = false;
   //   trials_since_last_check = 0;
   // } else {
   //   if (trials_since_last_check == frequency_check_frequency) {
-  //     doesNeedFrequencyCheck = true;
+  //     does_need_frequency_check = true;
   //   } else {
   //     trials_since_last_check++;
   //   }
@@ -294,16 +282,10 @@ void ir_PID() {
     // set_motor_speed(MOTOR_MAX_SPEED, false);
   }
 
-
   // CONSOLE_LOG(LOG_TAG, "frequency: %i, amp: %i", (int) right_extreme_frequency, (int) right_extreme_amplitude);
   // CONSOLE_LOG(LOG_TAG, "right max: %i right min: %i",  (int) extreme_right_max_val, (int) extreme_right_min_val);
 
- 
-
   current_error = get_error(right_amplitude, left_amplitude, right_extreme_amplitude, left_extreme_ampltude);
-
-
-  
 
   uint32_t total_time = millis() - time_marker;
   uint32_t derivative_error = (current_error - last_error_IR);

@@ -12,14 +12,15 @@ static const char* LOG_TAG = "JUMP";
 
 
 uint32_t trialCounter = 0;
+uint32_t off_rocks_timer = 0;
 uint32_t tape_checking_sensors[] =  {
     TAPE_R, 
     TAPE_E_R, 
     TAPE_L
 };
 uint32_t jump_checking_sensors[] = {
-    TAPE_E_L, 
-    TAPE_E_R, 
+    // TAPE_E_L, 
+    // TAPE_E_R, 
     TAPE_L, 
     TAPE_R
 };
@@ -28,12 +29,11 @@ bool findSonar = false;
 bool once_jump = false;
 
 
-JumpState preform(JumpState current_state) {
+JumpState perform(JumpState current_state) {
     // No matter your state the trial counter will be reset to 0. 
     if(!once_jump) {
         trialCounter = 0;
     }
-
     // ONTAPE block. 
     if (current_state == onTape) {
         // angle the steering ever so slightly towards the left and kick the motors close to top speed. 
@@ -41,8 +41,6 @@ JumpState preform(JumpState current_state) {
         if (!once_jump) {
             set_motor_speed(PREJUMP_MOTOR_SPEED);
             set_steering(PREJUMP_STEERING_ANGLE);
-            // do note that we set the position in this state and not in the previous ones. (it may be redundent but it is here just in case we make a whoopsies)
-            storePosition();
             once_jump = true;
         }
         
@@ -58,10 +56,7 @@ JumpState preform(JumpState current_state) {
             once_jump = false;
             return offTape;
         }
-
         return onTape;
-        
-
     }
 
     // OFFTAPE block
@@ -75,7 +70,6 @@ JumpState preform(JumpState current_state) {
         } else {
             trialCounter = 0;
         }
-
 
         // once we have reached the maxmimum number of trials we will now move states. 
         if (trialCounter >= NUM_OF_TRIALS) {
@@ -123,6 +117,7 @@ JumpState preform(JumpState current_state) {
             once_jump = true;
             has_centered_steering = false;
             on_ground_stepper = 0;
+            trialCounter = 0;
         }
 
         // STEP 0.
@@ -136,8 +131,7 @@ JumpState preform(JumpState current_state) {
             on_ground_stepper = 1;
         }
 
-        // STEP 1. 
-
+        // STEP 1.
         // We wait until we are off the rocks to continue. 
         // this block will validate that we are seeing the white part of the surface and not the rocks. 
         // (Again we wait until we have received enough consecuitive reading to move on)
@@ -158,8 +152,6 @@ JumpState preform(JumpState current_state) {
 
         // This step is extremely experimental and will need to modified. 
         // basically we need to figure out the settings that get us close enough to the center of the board so that IR can be triggered at the correct time and the fastest possible. 
-
-        uint32_t off_rocks_timer = 0;
         // option 1 (very traditional)
         if (on_ground_stepper == 2) {
             set_motor_speed(LOST_BOY_MOTOR_SPEED);
@@ -173,32 +165,21 @@ JumpState preform(JumpState current_state) {
 
         // STEP 3. 
 
-        
         // handles when we are in ideal position to collect IR beams. 
         if (on_ground_stepper == 3) {
             getPosition();
             if (getYaw() > MIN_ANGLE_TO_STOP_TURNING || getYaw() < -140) {
-                // this is when we would expect us to reach this angle. and we shouyld stop our steering and continue our current speed forward. 
-                if (on_ground_stepper == 3) {
-
-                    centre_steering();
-                    set_motor_speed(LOST_BOY_MOTOR_SPEED);
-                    on_ground_stepper = 4;
-
-
-                } else {
-                    CONSOLE_LOG(LOG_TAG, "CRITICAL ERROR: we are turned around and probably still on the rocks. ");
-                    return isLost;
-
+                // this is when we would expect us to reach this angle. and we should stop our steering and continue our current speed forward. 
+                centre_steering();
+                set_motor_speed(LOST_BOY_MOTOR_SPEED);
+                on_ground_stepper = 4;
                 }
-
-
             }
         }
-
         // STEP 4. 
 
         // this step will handle the end condition if we go out turning range and return us to the spot we would like to be. 
+        //ATTENTION problematic code ahead, use with care
         if(on_ground_stepper == 4) {
             getPosition();
             if (getYaw() < MIN_ANGLE_TO_STOP_TURNING) {
@@ -208,27 +189,18 @@ JumpState preform(JumpState current_state) {
             }
             on_ground_stepper = 3;
         }
-
         // overarching commands to get us in the correct modes once things are done in this state
-
-
         if (millis() - off_rocks_timer > WAITING_TIME) {
            cut_motors();
            return isLost;
         }
-
         if (on_ground_stepper >= 2) {
             if(IR_present()) {
                 return isIRReady;
             }
 
         }
-
         return onGround;
-
-    }
-
-    CONSOLE_LOG(LOG_TAG, "CODE BUG (BLAME LOGAN): line should never be reached");
 }
 
 
