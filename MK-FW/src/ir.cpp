@@ -24,7 +24,7 @@ uint32_t top_frequency_cutoff = 1150;
 bool does_need_frequency_check = true;
 uint32_t trials_since_last_check = 0;
 
-double bias = 0.95;
+double bias = 1.1;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -35,6 +35,10 @@ uint32_t extreme_left_max_val = 0;
 uint32_t extreme_left_min_val = 1024;
 uint32_t extreme_right_max_val = 0;
 uint32_t extreme_right_min_val = 1024;
+uint32_t left_amplitude = 0;
+uint32_t right_amplitude = 0;
+uint32_t left_extreme_ampltude = 0;
+uint32_t right_extreme_amplitude = 0;
 
 // the following variables are used to track the 
 // different prop, derivative, and integral error terms. 
@@ -152,7 +156,6 @@ bool IR_present() {
     
     sample_time += micros() - timer;
   }
-
   sample_time = sample_time / NUM_SAMPLES;
   
   double left_frequency = getFrequency(left, sample_time);
@@ -160,34 +163,46 @@ bool IR_present() {
   double left_extreme_frequency = getFrequency(extreme_left, sample_time);
   double right_extreme_frequency = getFrequency(extreme_right, sample_time);
 
+  left_amplitude = 0;
+  right_amplitude = 0;
+  left_extreme_ampltude = 0;
+  right_extreme_amplitude = 0;
 
   if (isFrequencyValid(left_frequency)) {
-    if (left_max_val - left_min_val > MIN_DETECTION_AMPLITUDE) {
-      resetMaximums();
-      return true;
-    }
+    left_amplitude = left_max_val - left_min_val;
   }
-
   if (isFrequencyValid(right_frequency)) {
-    if (right_max_val - right_min_val > MIN_DETECTION_AMPLITUDE) {
-      resetMaximums();
-      return true;
-    }
+    right_amplitude = right_max_val - right_min_val;
   }
-
   if (isFrequencyValid(left_extreme_frequency)) {
-    if (extreme_left_max_val - extreme_left_min_val > MIN_DETECTION_AMPLITUDE) {
-      resetMaximums();
-      return true;
-    }
+    left_extreme_ampltude = extreme_left_max_val - extreme_left_min_val;
   }
-
   if (isFrequencyValid(right_extreme_frequency)) {
-    if (extreme_right_max_val - extreme_right_min_val > MIN_DETECTION_AMPLITUDE) {
+    right_extreme_amplitude = extreme_right_max_val - extreme_right_min_val;
+  }
+  CONSOLE_LOG(LOG_TAG, "FREQ l: %i, r: %i, le: %i, re: %i", (int) left_frequency, (int) right_frequency, (int) left_extreme_frequency, (int) right_extreme_frequency);
+  CONSOLE_LOG(LOG_TAG, "AMP l: %i, r: %i, le: %i, re: %i", (int) left_amplitude, (int) right_amplitude, (int) left_extreme_ampltude, (int) right_extreme_amplitude);
+
+
+    if (left_amplitude > MIN_DETECTION_AMPLITUDE) {
       resetMaximums();
       return true;
     }
-  }
+
+    if (right_amplitude > MIN_DETECTION_AMPLITUDE) {
+      resetMaximums();
+      return true;
+    }
+
+    if (left_extreme_ampltude > MIN_DETECTION_AMPLITUDE) {
+      resetMaximums();
+      return true;
+    }
+
+    if (right_extreme_amplitude > MIN_DETECTION_AMPLITUDE) {
+      resetMaximums();
+      return true;
+    }
 
   resetMaximums();
 
@@ -251,10 +266,10 @@ void ir_PID() {
   //   }
   // }
 
-  uint32_t left_amplitude = 0;
-  uint32_t right_amplitude = 0;
-  uint32_t left_extreme_ampltude = 0;
-  uint32_t right_extreme_amplitude = 0;
+  left_amplitude = 0;
+  right_amplitude = 0;
+  left_extreme_ampltude = 0;
+  right_extreme_amplitude = 0;
 
 
   if (isFrequencyValid(left_frequency)) {
@@ -297,7 +312,7 @@ void ir_PID() {
   
   uint32_t turn_value = MID_POINT + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
   CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
-  set_steering(turn_value);
+  set_raw_steering(turn_value);
  
 }
 

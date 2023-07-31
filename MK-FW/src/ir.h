@@ -12,7 +12,7 @@
 #define NUM_SAMPLES 32 // number of samples which are being collected.
 #define BOTTOM_FREQUENCY_CUTOFF 900
 #define TOP_FREQUENCY_CUTOFF 1150
-#define MIN_DETECTION_AMPLITUDE 25
+#define MIN_DETECTION_AMPLITUDE 100
 #define EXPECTED_FREQUENCY
 
 void ir_init();

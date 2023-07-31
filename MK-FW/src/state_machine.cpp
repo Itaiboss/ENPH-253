@@ -9,6 +9,7 @@
 #include <logs.h>
 #include <pins.h>
 #include <stdint.h>
+#include <string.h>
 #include <pid.h>
 #include <imu.h>
 #include <jumpState.h>
@@ -21,9 +22,9 @@
 static const char* LOG_TAG = "STATE_MACHINE";
 bool once = false;
 
-StateMachine state_machine;
 uint32_t start_time;
 uint32_t rock_step;
+uint32_t ir_count;
 JumpState current_jump_state = onTape;
 uint32_t notOnRocksCounter = 0;
 uint32_t onRocksCounter = 0;
@@ -44,7 +45,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = START;
+    curr_state = IR_FOLLOW;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -53,35 +54,35 @@ StateMachine::state StateMachine::getCurrentState() {
     return curr_state;
 }
 
-std::string StateMachine::getStateString(StateMachine::state) {
-    std::string state;
-    switch (state_machine.getCurrentState()) {
+std::string StateMachine::getStateString(StateMachine::state input) {
+    std::string state_string;
+    switch (input) {
         case TAPE_FOLLOW_1:
-            state = "TAPE_FOLLOW_1";
+            state_string = "TAPE_FOLLOW_1";
             break;
         case TAPE_SEARCH:
-            state = "TAPE_SEARCH";
+            state_string = "TAPE_SEARCH";
             break;
         case TAPE_FOLLOW_2:
-            state = "TAPE_FOLLOW_2";
+            state_string = "TAPE_FOLLOW_2";
             break;
         case IR_FOLLOW:
-            state = "IR_FOLLOW";
+            state_string = "IR_FOLLOW";
             break;
         case ERROR:
-            state = "ERROR";
+            state_string = "ERROR";
             break;
         case START:
-            state = "START";
+            state_string = "START";
             break;
         case JUMP:
-            state = "JUMP";
+            state_string = "JUMP";
             break;
         case UNKNOWN:
-            state = "UNKNOWN";
+            state_string = "UNKNOWN";
             break;
     }
-    return state;
+    return state_string;
 }
 
 void StateMachine::determineState() {
@@ -107,13 +108,16 @@ void StateMachine::determineState() {
             break;
         case TAPE_SEARCH:
             next_state = tapeSearchState();
+            break;
         case UNKNOWN:
+            next_state = errorState();
+            break;
         default:
-            next_state = startState();
             break;
     }
+
     if (curr_state != next_state) {
-        CONSOLE_LOG(LOG_TAG, "Moving from %s ----> %s", getStateString(curr_state), getStateString(next_state));
+        CONSOLE_LOG(LOG_TAG, "Moving from %s ----> %s", getStateString(curr_state).c_str(), getStateString(next_state).c_str());
         if (prev_state != curr_state) {
             prev_state = curr_state;
         }
@@ -131,7 +135,7 @@ uint32_t completed_turn_time = 0;
 StateMachine::state StateMachine::startState() {
     // on the first run it will set a hard turn to the right or left based on the starting position. HIGH means starting on the left side. 
     if (!once) {
-        
+        ir_count = 0;
         turnComplete = false;
         set_motor_speed(START_SPEED);
         // start on the left so we need a right turn
@@ -150,25 +154,34 @@ StateMachine::state StateMachine::startState() {
 
     if (!turnComplete) {
         getPosition();
+        CONSOLE_LOG(LOG_TAG, "roll: %i, pitch: %i, yaw: %i, on rocks: %d", getRoll(), getPitch(), getYaw(), isOnRocks());
         if (START_SIDE == HIGH) {
             // this line of code coule be very buggy, it is meant to say that stop once you have turned 90 degrees to the right. 
             if (getYaw() < -START_GYRO_CUTOFF) {
                 centre_steering();
+                CONSOLE_LOG(LOG_TAG,"TURN COMPLETE");
                 turnComplete = true;
             }
         } else {
             // same as above but now we are stopping once we have turned 90 degrees to the left. 
             if (getYaw() > START_GYRO_CUTOFF) {
                 centre_steering();
+                CONSOLE_LOG(LOG_TAG,"TURN COMPLETE");
                 turnComplete = true;
             }
         }
     }
-    // if IR is present we send it to the ir follow state. 
+    //if IR is present we send it to the ir follow state. 
     if (IR_present()) {
-        once = false; 
+        ir_count++;
+        if (ir_count > 5) {
+        once = false;
+        ir_count = 0;
         return IR_FOLLOW;
-    } 
+        }
+    } else {
+        ir_count = 0;
+    }
 
     if (millis() - completed_turn_time > TIME_UNTIL_LOST_MODE) {
         once = false;
@@ -248,6 +261,7 @@ StateMachine::state StateMachine::irState() {
 //currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
     PID();
+    return TAPE_FOLLOW_1;
 }
 
 bool isRightActive;
@@ -385,15 +399,22 @@ StateMachine::state StateMachine::errorState() {
     // complete a spin in different direction trying to pick up the IR beacon. 
     // i don't think we should be looking for tape becuase that would completly fuck with our sequencing. We would be as good as lost at that point -Logan
     if(!once) {
+        ir_count = 0;
         start_time = millis();
         set_motor_speed(70);
         once = true; 
         set_differential_steering(direction_flip ? 100 : -100);
     }
 
-    if(IR_present()) {
+    if (IR_present()) {
+        ir_count++;
+        if (ir_count > 5) {
         once = false;
+        ir_count = 0;
         return IR_FOLLOW;
+        }
+    } else {
+        ir_count = 0;
     }
 
     if (millis()- IR_LOST_MODE_OSCILLATION_TIME >= start_time) {

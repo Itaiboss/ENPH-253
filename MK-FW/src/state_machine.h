@@ -7,10 +7,10 @@
 #include <string>
 
 // Settings for the start State
-#define START_SPEED 70
+#define START_SPEED 80
 #define START_TURNING_ANGLE 40
 #define START_GYRO_CUTOFF 80
-#define TIME_UNTIL_LOST_MODE 500 // millis
+#define TIME_UNTIL_LOST_MODE 5000 // millis
 
 // Modifications for the IR lost mode 
 #define IR_LOST_MODE_OSCILLATION_TIME 1000 //millis
@@ -42,7 +42,6 @@ class StateMachine {
         IR_FOLLOW               = 103,
         JUMP                    = 104,
         TAPE_SEARCH             = 105,
-        
         ERROR                   = 900,
     };
 
@@ -73,7 +72,7 @@ class StateMachine {
      * 
      * @return state as a string
      */
-    std::string getStateString(StateMachine::state);
+    std::string getStateString(StateMachine::state input);
 
     /**
      * @brief Determines the next state of the device

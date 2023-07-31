@@ -18,9 +18,9 @@ void set_steering(int32_t turning_value) {
 
     uint32_t valueToMotor;
     if (turning_value > 0) {
-        valueToMotor = (LEFT_MAX - MID_POINT) * (double) turning_value / 1000 + MID_POINT;
+        valueToMotor = (LEFT_MAX - MID_POINT) * (double) turning_value / 100 + MID_POINT;
     } else if (turning_value < 0) {
-        valueToMotor = (MID_POINT - RIGHT_MAX) * (double) turning_value / 1000 + MID_POINT;
+        valueToMotor = (MID_POINT - RIGHT_MAX) * (double) turning_value / 100 + MID_POINT;
     } 
 
     pwm_start(SERVO, 50, valueToMotor, RESOLUTION_12B_COMPARE_FORMAT);

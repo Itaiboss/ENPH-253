@@ -22,7 +22,7 @@
 
 
 static const char* LOG_TAG = "MAIN";
-extern StateMachine state_machine;
+StateMachine state_machine;
 JumpState jumpState = onTape;
 uint32_t start_time_main = 0;
 bool has_finished = false;
@@ -36,8 +36,7 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(100);
   state_machine.init();
-  pinMode(START_SIDE,INPUT);
-  
+  //pinMode(START_SIDE,INPUT);
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
@@ -100,7 +99,7 @@ void loop() {
 
   //PID();
 
-  //state_machine.determineState();
+  state_machine.determineState();
   //pwm_start(MOTOR_1A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
   //pwm_start(MOTOR_2A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
   
@@ -147,7 +146,7 @@ void loop() {
   BLOCK 1. IR_PID
   */
   
-  ir_PID();
+  //ir_PID();
 
   /*
   BLOCK 2. TAPE FOLLOW 
@@ -198,7 +197,6 @@ BLOCK 5: more complicated jump sequence.
 //   set_motor_speed(0.9, true);
 //   set_raw_steering(300);
 // }
-
 // getPosition();
 // CONSOLE_LOG(LOG_TAG, "roll: %i, pitch: %i, yaw: %i, on rocks: %d", getRoll(), getPitch(), getYaw(), isOnRocks());
 

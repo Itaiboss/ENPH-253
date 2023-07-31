@@ -26,7 +26,7 @@
 #define IR_L PA1
 #define IR_E_L PA5
 #define IR_E_R PA4
-#define START_SIDE PC14
+#define START_SIDE HIGH
 // Fixed variables 
 #define LEFT_MAX 370
 #define RIGHT_MAX 20
