@@ -29,9 +29,10 @@ JumpState current_jump_state = onTape;
 uint32_t notOnRocksCounter = 0;
 uint32_t onRocksCounter = 0;
 uint32_t searching_for_tape_timer;
+uint32_t post_rocks_timer;
 uint32_t lost_tape_timer;
-uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R};
-uint32_t allOutsideTapeSensors[] = {TAPE_E_L, TAPE_E_R};
+uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R, TAPE_LL, TAPE_RR};
+uint32_t allOutsideTapeSensors[] = {TAPE_E_R};
 
 bool direction_flip = true;
 
@@ -206,7 +207,7 @@ StateMachine::state StateMachine::irState() {
         rock_step = 0;
         notOnRocksCounter = 0;
         onRocksCounter = 0;
-        set_motor_speed(100);
+        set_motor_speed(95);
         once = true;
         
     }
@@ -235,6 +236,7 @@ StateMachine::state StateMachine::irState() {
         } else {
             notOnRocksCounter = 0;
         }
+        
         // increment a consecetive not on rocks counter. 
         // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
         if(notOnRocksCounter >= NUMBER_OF_NON_ROCKS_NEEDED) {
@@ -242,19 +244,29 @@ StateMachine::state StateMachine::irState() {
             set_steering(POST_ROCKS_TURN_ANGLE);
             set_motor_speed(POST_ROCKS_MOTOR_SPEED);
             searching_for_tape_timer = millis();
+            
             rock_step = 2;
-            cut_motors();
         }
     }
-    if (rock_step == 2) {
-        CONSOLE_LOG(LOG_TAG,"ROCK STEP 2");
+    
+    if(rock_step == 2) {
+
+        if (millis() - searching_for_tape_timer > RESTART_MOTORS_TIMER) {
+            set_motor_speed(RESTART_MOTOR_SPEED);
+            rock_step++;
+        }
+
+    }
+
+    if (rock_step == 3) {
+        CONSOLE_LOG(LOG_TAG,"ROCK STEP 3");
         //will need to be changed when add the more sensors. 
-        if (!is_all_sensors_low(allCentralTapeSensors, 2)) {
+        if (!is_all_sensors_low(allCentralTapeSensors, 4)) {
             once = false;
             return TAPE_FOLLOW_2;
         }
 
-        if (!is_all_sensors_low(allOutsideTapeSensors, 2)) {
+        if (!is_all_sensors_low(allOutsideTapeSensors, 1)) {
             once = false;
             return TAPE_SEARCH;
         }
@@ -271,6 +283,10 @@ StateMachine::state StateMachine::irState() {
 //currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
     PID();
+    if(!once){
+        set_motor_speed(65);
+        once = true;
+    }
     return TAPE_FOLLOW_1;
 }
 
@@ -288,7 +304,8 @@ bool isRandomDirectionRight;
 StateMachine::state StateMachine::tapeSearchState() {
 
     isRightActive = digitalRead(TAPE_E_R);
-    isLeftActive = digitalRead(TAPE_E_L);
+    // isLeftActive = digitalRead(TAPE_E_L);
+    isLeftActive = false;
 
     if (!once) {
         lost_tape_timer = millis();
@@ -341,7 +358,7 @@ StateMachine::state StateMachine::tapeSearchState() {
     }
 
     // will need to be changed when add the more sensors. 
-    if (!is_all_sensors_low(allCentralTapeSensors, 2)) {
+    if (!is_all_sensors_low(allCentralTapeSensors, 4)) {
         once = false;
         return TAPE_FOLLOW_2;
     }

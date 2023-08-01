@@ -16,7 +16,7 @@ static const char* LOG_TAG = "PID";
 
 double kp = 32;
 double ki = 0;//0.005;
-double kd = 0;//2;
+double kd = 10;//2;
 uint32_t target;
 int32_t control;
 uint32_t sense_r;
@@ -25,7 +25,7 @@ uint32_t sense_rr;
 uint32_t sense_ll;
 uint32_t last_r;
 uint32_t last_l;
-uint32_t time_ms = 10;
+uint32_t time_ms = 2;
 uint32_t last_time = 0;
 int32_t error = 0;
 int32_t total_error;
@@ -36,7 +36,7 @@ int32_t min_control = RIGHT_MAX;
 int32_t diff = 0;
 int32_t integral_max = 250;
 int32_t integral_min = 250;
-const int32_t error_table[9]={6,4,2,1,0,-1,-2,-4,-6,}; 
+const int32_t error_table[9]={7,5,1,1,0,-1,-1,-5,-7,}; 
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
@@ -81,7 +81,7 @@ void PID() {
         } else if( !sense_ll && !sense_l && !sense_r && !sense_rr){
             if (last_error < 0) {
                 error = error_table[8];
-            } else {
+            } else if (last_error>0){
                 error = error_table[0];
             }
         } else {
@@ -121,7 +121,7 @@ void PID() {
             //set_differential_steering(.5, false);
         }
     } else {
-        set_motor_speed(65);
+        //set_motor_speed(65);
     }
 }
 

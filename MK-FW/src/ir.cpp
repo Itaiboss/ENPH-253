@@ -7,6 +7,7 @@
 #include <ir.h>
 #include <logs.h>
 #include <control.h>
+#include <math.h>
 #include <arduinoFFT.h>
 
 static const char* LOG_TAG = "IR";
@@ -24,7 +25,7 @@ uint32_t top_frequency_cutoff = 1150;
 bool does_need_frequency_check = true;
 uint32_t trials_since_last_check = 0;
 
-double bias = 1.05;
+double bias = 0.95;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -47,7 +48,9 @@ int32_t last_error_IR = 0;
 int32_t total_error_IR = 0;
 
 // the following are coefficents to control the PID logic 
-double prop_coef = 0.001;
+double close_prop_coef = 0.0004;
+double far_prop_coef = 0.0012;
+double far_away_cutoff = 225;
 double derivative_coef = 0;
 double integral_coef = 0;
 
@@ -298,7 +301,35 @@ void ir_PID() {
     right_extreme_amplitude = 0;
   }
 
-  //CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
+  CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
+
+  uint32_t max = 0;
+  if (right_amplitude > max) {
+    max = right_amplitude;
+  }
+
+  if (left_amplitude > max) {
+    max = left_amplitude;
+  }
+
+  if (left_extreme_ampltude > max) {
+    max = right_amplitude;
+  }
+
+  if (right_extreme_amplitude > max) {
+    max = left_amplitude;
+  }
+
+  CONSOLE_LOG(LOG_TAG, "max val: %i", max);
+
+
+  
+  double prop_coef;
+  if (max > far_away_cutoff) {
+    prop_coef = close_prop_coef;
+  } else {
+    prop_coef = far_prop_coef;
+  }
 
   
 
@@ -306,6 +337,8 @@ void ir_PID() {
   // CONSOLE_LOG(LOG_TAG, "right max: %i right min: %i",  (int) extreme_right_max_val, (int) extreme_right_min_val);
 
   current_error = get_error(right_amplitude, left_amplitude, right_extreme_amplitude, left_extreme_ampltude);
+
+  CONSOLE_LOG(LOG_TAG, "error is: %i", (int) current_error);
 
   uint32_t total_time = millis() - time_marker;
   uint32_t derivative_error = (current_error - last_error_IR);
@@ -356,6 +389,7 @@ int32_t get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_
 double normalize_magnitude(double total, uint32_t ampltitude) {
   // CONSOLE_LOG(LOG_TAG, "total: %i, ampltiude: %i, divided term: %i", (int) total, (int) ampltitude, (int) (ampltitude / total * 100));
   return ampltitude / (total + 100) * 10000;
+  
 }
 
 

@@ -8,7 +8,7 @@
 
 // Settings for the start State
 #define START_SPEED 95
-#define START_TURNING_ANGLE 25
+#define START_TURNING_ANGLE 35
 #define START_GYRO_CUTOFF 49
 #define TIME_UNTIL_LOST_MODE 5000 // millis
 
@@ -17,10 +17,13 @@
 
 // Modification for the post rocks motor control 
 #define POST_ROCKS_TURN_ANGLE 6
-#define POST_ROCKS_MOTOR_SPEED 50
+#define POST_ROCKS_MOTOR_SPEED 10
+
+#define RESTART_MOTORS_TIMER 300
+#define RESTART_MOTOR_SPEED 50
 
 // Settings for how the sensitive should be to the isOnRocks function. 
-#define NUMBER_OF_NON_ROCKS_NEEDED 5
+#define NUMBER_OF_NON_ROCKS_NEEDED 4
 #define NUMBER_OF_ROCKS_NEEDED 3
 
 // How long will search for tape inside the IR functiom
