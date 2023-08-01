@@ -45,7 +45,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = START;
+    curr_state = TAPE_FOLLOW_1;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }

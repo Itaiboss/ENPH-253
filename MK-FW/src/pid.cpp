@@ -14,7 +14,7 @@
 
 static const char* LOG_TAG = "PID";
 
-double kp = 60;
+double kp = 32;
 double ki = 0;//0.005;
 double kd = 0;//2;
 uint32_t target;
@@ -27,7 +27,7 @@ uint32_t last_r;
 uint32_t last_l;
 uint32_t time_ms = 10;
 uint32_t last_time = 0;
-int32_t error;
+int32_t error = 0;
 int32_t total_error;
 int32_t last_error;
 int32_t d_error;
@@ -36,7 +36,7 @@ int32_t min_control = RIGHT_MAX;
 int32_t diff = 0;
 int32_t integral_max = 250;
 int32_t integral_min = 250;
-const double lookup[2][2] = {{5,1}, {-1,0}}; // l,r
+const int32_t error_table[9]={6,4,2,1,0,-1,-2,-4,-6,}; 
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
@@ -48,26 +48,46 @@ void pidInit() {
 }
 
 void PID() {
+    error = 0;
     if (millis()> last_time + time_ms) {
-        diff=0;
+        diff = 0;
         sense_r = digitalRead(TAPE_R);
         sense_l = digitalRead(TAPE_L);
         sense_rr = digitalRead(TAPE_RR);
         sense_ll = digitalRead(TAPE_LL);
-        CONSOLE_LOG(LOG_TAG,"TAPE LL:%d TAPE L:%d TAPE R:%d TAPE RR:%d", sense_ll,sense_l, sense_r, sense_rr);
-        int32_t error = 0;
-        if (sense_r == 0 && sense_l == 0) {
-            if (last_l == 1) {
-                error = lookup[sense_r][sense_l];
-            } else if (last_r == 1) {
-                error = lookup[sense_r][sense_l]*-1;
+        
+        //0110
+        if( !sense_ll && sense_l && sense_r && !sense_rr){
+            error = error_table[4];
+        //1110
+        } else if( sense_ll && sense_l && sense_r && !sense_rr){
+            error = error_table[3];
+        //0111
+        }else if( !sense_ll && sense_l && sense_r && sense_rr){
+            error = error_table[5];
+        //0011
+        }else if( !sense_ll && !sense_l && sense_r && sense_rr){
+            error = error_table[6];
+        //1100
+        } else if( sense_ll && sense_l && !sense_r && !sense_rr){
+            error = error_table[2];
+        //1000
+        } else if( sense_ll && !sense_l && !sense_r && !sense_rr){
+            error = error_table[1];
+        //0001
+        }else if( !sense_ll && !sense_l && !sense_r && sense_rr){
+            error = error_table[7];
+        //0000
+        } else if( !sense_ll && !sense_l && !sense_r && !sense_rr){
+            if (last_error < 0) {
+                error = error_table[8];
             } else {
-                error = last_error;
+                error = error_table[0];
             }
+        } else {
+            error = last_error;
         }
-        else {
-            error = lookup[sense_r][sense_l];
-        }
+        CONSOLE_LOG(LOG_TAG,"TAPE LL:%d TAPE L:%d TAPE R:%d TAPE RR:%d", sense_ll,sense_l, sense_r, sense_rr);
         CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
         if (total_error >= max_control) {
@@ -79,14 +99,14 @@ void PID() {
         control = kp*error + (ki*time_ms)*total_error + (kd/time_ms)*d_error + MID_POINT;
         if (control >= max_control) {
             diff = (max_control-control)*-1;
-            CONSOLE_LOG(LOG_TAG,"%d",diff);
+            //CONSOLE_LOG(LOG_TAG,"%d",diff);
             control = max_control;
         } else if (control <= min_control) {
             diff = (control-min_control);
-            CONSOLE_LOG(LOG_TAG,"%d",diff);
+            //CONSOLE_LOG(LOG_TAG,"%d",diff);
             control = min_control;
         }
-        //CONSOLE_LOG(LOG_TAG,"%d",control);
+        CONSOLE_LOG(LOG_TAG,"%d",control);
         last_error = error;
         last_r = sense_r;
         last_l = sense_l;
