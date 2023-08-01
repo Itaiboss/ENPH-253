@@ -11,7 +11,7 @@ MPU6050 mpu(Wire);
 int16_t roll, pitch, yaw;
 int16_t lastRoll, lastPitch, lastYaw;
 int16_t offsetRoll, offsetPitch, offsetYaw = 0;
-int16_t threshold = 5; //degrees, change of angle that happens when car is on rocks
+int16_t threshold = 3; //degrees, change of angle that happens when car is on rocks
 
 /**
  * @brief  Initilizes the imu by calculating the offsets. 
@@ -71,7 +71,7 @@ bool isOnRocks(){
     diffRoll = abs(roll - lastRoll);
     diffPitch = abs(pitch - lastPitch);
     diffYaw = abs(yaw - lastYaw);
-    if(diffYaw >= threshold || diffPitch >= threshold){// || diffYaw >= threshold){
+    if(diffPitch >= threshold){// || diffYaw >= threshold){
         return true;
     }
     return false;

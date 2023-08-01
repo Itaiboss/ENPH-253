@@ -17,14 +17,14 @@ double extreme_left_ir_reading[NUM_SAMPLES] = {0};
 double extreme_right_ir_reading[NUM_SAMPLES] = {0};
 
 
-uint32_t signalAmplitudeCutOff = 25;
+uint32_t signalAmplitudeCutOff = 50;
 uint32_t bottom_frequency_cutoff = 950;
 uint32_t expected_frequency = 1000;
 uint32_t top_frequency_cutoff = 1150;
 bool does_need_frequency_check = true;
 uint32_t trials_since_last_check = 0;
 
-double bias = 1.1;
+double bias = 1.05;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -47,7 +47,7 @@ int32_t last_error_IR = 0;
 int32_t total_error_IR = 0;
 
 // the following are coefficents to control the PID logic 
-double prop_coef = 0.00083;
+double prop_coef = 0.001;
 double derivative_coef = 0;
 double integral_coef = 0;
 
@@ -285,17 +285,22 @@ void ir_PID() {
     right_extreme_amplitude = extreme_right_max_val - extreme_right_min_val;
   }
 
-  CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
-
-  if (left_amplitude < signalAmplitudeCutOff && right_amplitude < signalAmplitudeCutOff && left_extreme_ampltude < signalAmplitudeCutOff && right_extreme_amplitude < signalAmplitudeCutOff) {
-    // set_motor_speed(MOTOR_SLOW_SPEED, false);
-    CONSOLE_LOG(LOG_TAG, "Nothing detected");
-  } else if (left_amplitude + right_amplitude > 700) {
-    // set_motor_speed(0.6, false);
-    CONSOLE_LOG(LOG_TAG, "Things Are detected");
-  } else {
-    // set_motor_speed(MOTOR_MAX_SPEED, false);
+  if (left_amplitude < signalAmplitudeCutOff) {
+    left_amplitude = 0;
   }
+  if (right_amplitude < signalAmplitudeCutOff) {
+    right_amplitude = 0;
+  }
+  if (left_extreme_ampltude < signalAmplitudeCutOff) {
+    left_extreme_ampltude = 0;
+  }
+  if (right_extreme_amplitude < signalAmplitudeCutOff) {
+    right_extreme_amplitude = 0;
+  }
+
+  //CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
+
+  
 
   // CONSOLE_LOG(LOG_TAG, "frequency: %i, amp: %i", (int) right_extreme_frequency, (int) right_extreme_amplitude);
   // CONSOLE_LOG(LOG_TAG, "right max: %i right min: %i",  (int) extreme_right_max_val, (int) extreme_right_min_val);
@@ -311,7 +316,7 @@ void ir_PID() {
 
   
   uint32_t turn_value = MID_POINT + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
-  CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
+  //CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
   set_raw_steering(turn_value);
  
 }

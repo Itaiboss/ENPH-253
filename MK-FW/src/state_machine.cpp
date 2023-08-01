@@ -45,7 +45,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = IR_FOLLOW;
+    curr_state = START;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -177,6 +177,7 @@ StateMachine::state StateMachine::startState() {
         if (ir_count > 5) {
         once = false;
         ir_count = 0;
+        centre_steering();
         return IR_FOLLOW;
         }
     } else {
@@ -199,12 +200,15 @@ StateMachine::state StateMachine::startState() {
 
 
 StateMachine::state StateMachine::irState() {
-   
+    uint32_t timer = millis();
     // assigns the rock step be one at the start. this means that we have yet to reach the rocks. 
     if(!once){
         rock_step = 0;
         notOnRocksCounter = 0;
         onRocksCounter = 0;
+        set_motor_speed(100);
+        once = true;
+        
     }
 
     // enter this block when we are on the rocks. 
@@ -213,14 +217,17 @@ StateMachine::state StateMachine::irState() {
         getPosition();
         if (isOnRocks()) {
             onRocksCounter++;
+            CONSOLE_LOG(LOG_TAG,"ON ROCKS ++");
         }
         // only continue to the next steps once multiple trials have been completed. 
-        if (onRocksCounter == NUMBER_OF_ROCKS_NEEDED) {
+        if (onRocksCounter >= NUMBER_OF_ROCKS_NEEDED) {
+            CONSOLE_LOG(LOG_TAG,"set rock state = 1");
             rock_step = 1;
         }
     }
 
     if (rock_step == 1) {
+        CONSOLE_LOG(LOG_TAG,"ROCK STEP 1");
         ir_PID();
         getPosition();
         if (isOnRocks) {
@@ -230,16 +237,18 @@ StateMachine::state StateMachine::irState() {
         }
         // increment a consecetive not on rocks counter. 
         // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
-        if(notOnRocksCounter == NUMBER_OF_NON_ROCKS_NEEDED) {
+        if(notOnRocksCounter >= NUMBER_OF_NON_ROCKS_NEEDED) {
             // may need to be adjusted as needed. 
             set_steering(POST_ROCKS_TURN_ANGLE);
             set_motor_speed(POST_ROCKS_MOTOR_SPEED);
             searching_for_tape_timer = millis();
             rock_step = 2;
+            cut_motors();
         }
     }
     if (rock_step == 2) {
-        // will need to be changed when add the more sensors. 
+        CONSOLE_LOG(LOG_TAG,"ROCK STEP 2");
+        //will need to be changed when add the more sensors. 
         if (!is_all_sensors_low(allCentralTapeSensors, 2)) {
             once = false;
             return TAPE_FOLLOW_2;
@@ -255,6 +264,7 @@ StateMachine::state StateMachine::irState() {
             return TAPE_SEARCH;
         }
     }
+    CONSOLE_LOG(LOG_TAG,"Time:%d", millis()-timer);
     return IR_FOLLOW; 
 }
 

@@ -21,6 +21,8 @@ uint32_t target;
 int32_t control;
 uint32_t sense_r;
 uint32_t sense_l;
+uint32_t sense_rr;
+uint32_t sense_ll;
 uint32_t last_r;
 uint32_t last_l;
 uint32_t time_ms = 10;
@@ -41,6 +43,8 @@ void pidInit() {
     pinMode(TAPE_R, INPUT_PULLUP);
     pinMode(TAPE_E_L, INPUT_PULLUP);
     pinMode(TAPE_E_R, INPUT_PULLUP);
+    pinMode(TAPE_RR, INPUT_PULLUP);
+    pinMode(TAPE_LL, INPUT_PULLUP);
 }
 
 void PID() {
@@ -48,7 +52,9 @@ void PID() {
         diff=0;
         sense_r = digitalRead(TAPE_R);
         sense_l = digitalRead(TAPE_L);
-        CONSOLE_LOG(LOG_TAG,"TAPE L:%d TAPE R:%d", sense_l, sense_r);
+        sense_rr = digitalRead(TAPE_RR);
+        sense_ll = digitalRead(TAPE_LL);
+        CONSOLE_LOG(LOG_TAG,"TAPE LL:%d TAPE L:%d TAPE R:%d TAPE RR:%d", sense_ll,sense_l, sense_r, sense_rr);
         int32_t error = 0;
         if (sense_r == 0 && sense_l == 0) {
             if (last_l == 1) {

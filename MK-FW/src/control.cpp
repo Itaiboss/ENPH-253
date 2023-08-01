@@ -19,7 +19,7 @@ void set_steering(int32_t turning_value) {
     uint32_t valueToMotor;
     if (turning_value > 0) {
         valueToMotor = (LEFT_MAX - MID_POINT) * (double) turning_value / 100 + MID_POINT;
-    } else if (turning_value < 0) {
+    } else if (turning_value <= 0) {
         valueToMotor = (MID_POINT - RIGHT_MAX) * (double) turning_value / 100 + MID_POINT;
     } 
 

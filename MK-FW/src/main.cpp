@@ -52,7 +52,7 @@ void setup() {
   BLOCK 1. IR_PID
   */
   
-  set_motor_speed(80);
+  
 
   /*
   BLOCK 2. TAPE FOLLOW 
@@ -94,7 +94,10 @@ BLOCK 5: more complicated jump sequence.
 
 
 void loop() {
-  // set_raw_steering(MID_POINT);
+  // centre_steering();
+  //set_raw_steering(MID_POINT);
+
+
 
 
   //PID();
@@ -106,7 +109,7 @@ void loop() {
   // uint32_t high = LEFT_MAX;
   // uint32_t low = RIGHT_MAX;
   // for (int i = high ; i > low; i-=2) {
-  //pwm_start(SERVO, 50, MID_POINT, RESOLUTION_12B_COMPARE_FORMAT);
+  //   pwm_start(SERVO, 50, i, RESOLUTION_12B_COMPARE_FORMAT);
   //   CONSOLE_LOG(LOG_TAG, "servo:%i",i);
   //   delay(30);
   // }
