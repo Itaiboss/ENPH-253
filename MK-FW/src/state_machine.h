@@ -8,7 +8,7 @@
 
 // Settings for the start State
 #define START_SPEED 95
-#define START_TURNING_ANGLE 35
+#define START_TURNING_ANGLE 48
 #define START_GYRO_CUTOFF 49
 #define TIME_UNTIL_LOST_MODE 5000 // millis
 
@@ -16,7 +16,7 @@
 #define IR_LOST_MODE_OSCILLATION_TIME 1000 //millis
 
 // Modification for the post rocks motor control 
-#define POST_ROCKS_TURN_ANGLE 6
+#define POST_ROCKS_TURN_ANGLE 18
 #define POST_ROCKS_MOTOR_SPEED 10
 
 #define RESTART_MOTORS_TIMER 300

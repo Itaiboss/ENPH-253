@@ -17,11 +17,11 @@
 #define RIGHT_MOTOR_BACKWARD PB_9
 #define I2C_SDA PB7
 #define I2C_SCL PB6
-#define ZERO PB4
-#define TAPE_L PB1
-#define TAPE_LL PB10
-#define TAPE_RR PA11
-#define TAPE_R PA12
+#define ZERO PB4 
+#define TAPE_L PA11
+#define TAPE_LL PA12
+#define TAPE_RR PB1
+#define TAPE_R PB10
 #define TAPE_E_L PB14
 #define TAPE_E_R PB15
 #define IR_R PA0
