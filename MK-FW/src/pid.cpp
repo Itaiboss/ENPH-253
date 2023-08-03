@@ -13,10 +13,6 @@
 #pragma once
 
 static const char* LOG_TAG = "PID";
-
-double kp = 32;
-double ki = 0;//0.005;
-double kd = 10;//2;
 uint32_t target;
 int32_t control;
 uint32_t sense_r;
@@ -25,7 +21,7 @@ uint32_t sense_rr;
 uint32_t sense_ll;
 uint32_t last_r;
 uint32_t last_l;
-uint32_t time_ms = 2;
+uint32_t time_ms = 8;
 uint32_t last_time = 0;
 int32_t error = 0;
 int32_t total_error;
@@ -36,7 +32,7 @@ int32_t min_control = RIGHT_MAX;
 int32_t diff = 0;
 int32_t integral_max = 250;
 int32_t integral_min = 250;
-const int32_t error_table[9]={7,5,1,1,0,-1,-1,-5,-7,}; 
+const int32_t error_table[9]={4,2,1,0,0,0,-1,-2,-4,}; 
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
@@ -47,9 +43,9 @@ void pidInit() {
     pinMode(TAPE_LL, INPUT_PULLUP);
 }
 
-void PID() {
+void PID( int32_t kp, int32_t ki, int32_t kd) {
     error = 0;
-    if (millis()> last_time + time_ms) {
+    if (millis()- last_time > time_ms) {
         diff = 0;
         sense_r = digitalRead(TAPE_R);
         sense_l = digitalRead(TAPE_L);
@@ -59,16 +55,16 @@ void PID() {
         //0110
         if( !sense_ll && sense_l && sense_r && !sense_rr){
             error = error_table[4];
-        //1110
-        } else if( sense_ll && sense_l && sense_r && !sense_rr){
-            error = error_table[3];
-        //0111
-        }else if( !sense_ll && sense_l && sense_r && sense_rr){
-            error = error_table[5];
-        //0011
-        }else if( !sense_ll && !sense_l && sense_r && sense_rr){
-            error = error_table[6];
-        //1100
+        // //1110
+        // } else if( sense_ll && sense_l && sense_r && !sense_rr){
+        //     error = error_table[3];
+        // //0111
+        // }else if( !sense_ll && sense_l && sense_r && sense_rr){
+        //     error = error_table[5];
+        // //0011
+        // }else if( !sense_ll && !sense_l && sense_r && sense_rr){
+        //     error = error_table[6];
+        // //1100
         } else if( sense_ll && sense_l && !sense_r && !sense_rr){
             error = error_table[2];
         //1000
@@ -81,14 +77,21 @@ void PID() {
         } else if( !sense_ll && !sense_l && !sense_r && !sense_rr){
             if (last_error < 0) {
                 error = error_table[8];
-            } else if (last_error>0){
+                //set_differential_steering(-50);
+            } else if (last_error > 0){
                 error = error_table[0];
+                //set_differential_steering(50);
             }
-        } else {
+        } else if (sense_ll && sense_l && sense_r && sense_rr) {
+            error = 0;
+        }else{
             error = last_error;
         }
+        if (error != 0) {
+            //set_differential_steering(0);
+        }
         CONSOLE_LOG(LOG_TAG,"TAPE LL:%d TAPE L:%d TAPE R:%d TAPE RR:%d", sense_ll,sense_l, sense_r, sense_rr);
-        CONSOLE_LOG(LOG_TAG,"%d",error);
+        //CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
         if (total_error >= max_control) {
             total_error = max_control;
@@ -97,34 +100,15 @@ void PID() {
         }
         d_error = error-last_error;
         control = kp*error + (ki*time_ms)*total_error + (kd/time_ms)*d_error + MID_POINT;
-        if (control >= max_control) {
-            diff = (max_control-control)*-1;
-            //CONSOLE_LOG(LOG_TAG,"%d",diff);
-            control = max_control;
-        } else if (control <= min_control) {
-            diff = (control-min_control);
-            //CONSOLE_LOG(LOG_TAG,"%d",diff);
-            control = min_control;
-        }
-        CONSOLE_LOG(LOG_TAG,"%d",control);
+        //CONSOLE_LOG(LOG_TAG,"%d",control);
         last_error = error;
         last_r = sense_r;
         last_l = sense_l;
+        //CONSOLE_LOG(LOG_TAG, "Time: %d",millis()-last_time);
         last_time = millis();
-        }
-    pwm_start(SERVO, 50, control, RESOLUTION_12B_COMPARE_FORMAT);
-    if (diff != 0) {
-        if (diff > 0) {
-            //set_differential_steering(.5, true);
-        }
-        if (diff < 0) {
-            //set_differential_steering(.5, false);
-        }
-    } else {
-        //set_motor_speed(65);
+        set_raw_steering(control);
     }
 }
-
 bool tapeIsPresent() {
     return digitalRead(TAPE_L) || digitalRead(TAPE_R);
 }

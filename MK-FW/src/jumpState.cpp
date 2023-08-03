@@ -16,11 +16,13 @@ uint32_t off_rocks_timer = 0;
 uint32_t tape_checking_sensors[] =  {
     TAPE_R, 
     TAPE_E_R, 
-    TAPE_L
+    TAPE_L,
+    TAPE_LL,
+    TAPE_RR,
 };
 uint32_t jump_checking_sensors[] = {
-    // TAPE_E_L, 
-    // TAPE_E_R, 
+    TAPE_LL, 
+    TAPE_RR, 
     TAPE_L, 
     TAPE_R
 };
@@ -46,7 +48,7 @@ JumpState perform(JumpState current_state) {
         
         // check the rightmost 3 sensor to see if the are reading white. 
         // To know we are off the tape we will have to have multiple consecutive trials where the tape goes white. 
-        if (is_all_sensors_low(tape_checking_sensors, 3)) {
+        if (is_all_sensors_low(tape_checking_sensors, 5)) {
             trialCounter++;
         } else {
             trialCounter = 0;
@@ -189,6 +191,7 @@ JumpState perform(JumpState current_state) {
             }
             on_ground_stepper = 3;
         }
+        
         // overarching commands to get us in the correct modes once things are done in this state
         if (millis() - off_rocks_timer > WAITING_TIME) {
            cut_motors();

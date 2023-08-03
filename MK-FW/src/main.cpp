@@ -46,6 +46,7 @@ void setup() {
   pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
   imuInit();
   storePosition();
+  set_motor_speed(93);
   
   start_time_main = millis();
 
@@ -97,7 +98,7 @@ BLOCK 5: more complicated jump sequence.
 void loop() {
   // centre_steering();
   //set_raw_steering(MID_POINT);
-  // set_motor_speed(85);
+  // set_motor_speed( 85);
 
   // ir_PID();
 

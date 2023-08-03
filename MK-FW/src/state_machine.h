@@ -16,15 +16,15 @@
 #define IR_LOST_MODE_OSCILLATION_TIME 1000 //millis
 
 // Modification for the post rocks motor control 
-#define POST_ROCKS_TURN_ANGLE 18
-#define POST_ROCKS_MOTOR_SPEED 10
+#define POST_ROCKS_TURN_ANGLE 10
+#define POST_ROCKS_MOTOR_SPEED 0
 
-#define RESTART_MOTORS_TIMER 300
-#define RESTART_MOTOR_SPEED 50
+#define RESTART_MOTORS_TIMER 1000
+#define RESTART_MOTOR_SPEED 45
 
 // Settings for how the sensitive should be to the isOnRocks function. 
 #define NUMBER_OF_NON_ROCKS_NEEDED 4
-#define NUMBER_OF_ROCKS_NEEDED 3
+#define NUMBER_OF_ROCKS_NEEDED 4
 
 // How long will search for tape inside the IR functiom
 #define SEARCH_FOR_TAPE_TIME 1000 //millis

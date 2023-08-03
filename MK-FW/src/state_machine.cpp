@@ -17,6 +17,7 @@
 #include <sonar.h>
 #include <control.h>
 
+
 #pragma once
 
 static const char* LOG_TAG = "STATE_MACHINE";
@@ -33,6 +34,8 @@ uint32_t post_rocks_timer;
 uint32_t lost_tape_timer;
 uint32_t allCentralTapeSensors[] = {TAPE_L, TAPE_R, TAPE_LL, TAPE_RR};
 uint32_t allOutsideTapeSensors[] = {TAPE_E_R};
+uint32_t on_ramp_time;
+extern int32_t kp;
 
 bool direction_flip = true;
 
@@ -46,7 +49,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = TAPE_FOLLOW_1;
+    curr_state = TAPE_FOLLOW_2;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -176,10 +179,10 @@ StateMachine::state StateMachine::startState() {
     if (IR_present()) {
         ir_count++;
         if (ir_count > 5) {
-        once = false;
-        ir_count = 0;
-        centre_steering();
-        return IR_FOLLOW;
+            once = false;
+            ir_count = 0;
+            centre_steering();
+            return IR_FOLLOW;
         }
     } else {
         ir_count = 0;
@@ -240,9 +243,10 @@ StateMachine::state StateMachine::irState() {
         // increment a consecetive not on rocks counter. 
         // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
         if(notOnRocksCounter >= NUMBER_OF_NON_ROCKS_NEEDED) {
-            // may need to be adjusted as needed. 
+            // may need to be adjusted as needed.
+            set_motor_speed(POST_ROCKS_MOTOR_SPEED); 
             set_steering(POST_ROCKS_TURN_ANGLE);
-            set_motor_speed(POST_ROCKS_MOTOR_SPEED);
+            
             searching_for_tape_timer = millis();
             
             rock_step = 2;
@@ -253,6 +257,7 @@ StateMachine::state StateMachine::irState() {
 
         if (millis() - searching_for_tape_timer > RESTART_MOTORS_TIMER) {
             set_motor_speed(RESTART_MOTOR_SPEED);
+            set_steering(POST_ROCKS_TURN_ANGLE);
             rock_step++;
         }
 
@@ -282,9 +287,9 @@ StateMachine::state StateMachine::irState() {
 
 //currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
-    PID();
+    PID(KP,KI,KD);
     if(!once){
-        set_motor_speed(65);
+        set_motor_speed(0);
         once = true;
     }
     return TAPE_FOLLOW_1;
@@ -304,7 +309,7 @@ bool isRandomDirectionRight;
 StateMachine::state StateMachine::tapeSearchState() {
 
     isRightActive = digitalRead(TAPE_E_R);
-    // isLeftActive = digitalRead(TAPE_E_L);
+    isLeftActive = digitalRead(TAPE_E_L);
     isLeftActive = false;
 
     if (!once) {
@@ -367,27 +372,80 @@ StateMachine::state StateMachine::tapeSearchState() {
 }
 
 int follow_step = 0;
+uint32_t trial_counter_tape;
+bool has_slowed_down = false;
 
 StateMachine::state StateMachine::tapeFollowState2() {
 
     if(!once) {
         follow_step = 0;
+        set_motor_speed(55);
+        //stores the position so that we can know when we are on the ramp. 
         storePosition();
+        once = true;
+        trial_counter_tape = 0;
     }
-    PID();
+    if (follow_step < 1){
+    PID(KP,KI,KD);
+    } else {
+    PID(15,0,-8);
+    }
     getPosition();
+    double incline_angle;
+    incline_angle = atan(sqrt(pow(tan((double) getPitch()* PI / 180.0), 2) + pow(tan( (double) getRoll()* PI / 180.0), 2))) * 180 / PI;
+    //CONSOLE_LOG(LOG_TAG, "angle: %d", (int) incline_angle);
     // this block handles before you have hit the first marker. 
     if (follow_step == 0) {
+        // CONSOLE_LOG(LOG_TAG, "pitch: %i", getPitch());
+
+        
+        
+        if (incline_angle > 7.5) {
+            trial_counter_tape++;
+        } else {
+            trial_counter_tape = 0;
+        }
+        
         //TODO: add checks for all central sensors
-        if (digitalRead(TAPE_E_L) && !digitalRead(TAPE_E_R)|| getPitch()>=15) { //maybe needs extra error correction to make sure the others are still on the tape. 
+        if (trial_counter_tape >= 7) {
+            trial_counter_tape = 0;
+            
+            CONSOLE_LOG(LOG_TAG, "on ramp");
+            set_motor_speed(75); //maybe needs extra error correction to make sure the others are still on the tape. 
+            on_ramp_time = millis();
             follow_step = 1;
             // zeros the position 
         }
-    } 
+    }
+
+    if (follow_step == 1 && millis() - on_ramp_time > 500 && !has_slowed_down) {
+        set_motor_speed(81);
+        has_slowed_down = true;
+        storePosition();
+    }
+
     // this block handles before you have hit the second marker. 
-    if (follow_step == 1) {
+    if (follow_step == 1 && millis()- on_ramp_time > 1500) {
         //TODO:ADD gyro check as well
-        if (digitalRead(TAPE_E_L) && digitalRead(TAPE_E_R) && ((digitalRead(TAPE_L) || digitalRead(TAPE_R)))) {
+
+        if ((incline_angle > 4 && has_slowed_down)) {
+            trial_counter_tape++;
+        } else {
+            trial_counter_tape = 0;
+        }
+
+
+        // CONSOLE_LOG(LOG_TAG,"Tape E_L: %d Tape E_R: %d",digitalRead(TAPE_E_L),digitalRead(TAPE_E_R));
+        // if ((digitalRead(TAPE_E_L)) && digitalRead(TAPE_E_R)) {
+        //     follow_step = 0;
+        //     storePosition();
+        //     cut_motors();
+        //     return JUMP;
+        // }
+        
+
+        if (trial_counter_tape >= 7) {
+            trial_counter_tape = 0;
             follow_step = 0;
             storePosition();
             return JUMP;
@@ -400,21 +458,23 @@ StateMachine::state StateMachine::tapeFollowState2() {
 
 StateMachine::state StateMachine::jumpState() {
 
+    cut_motors();
+
 
     // if this if the first call the starting state should be onTape. 
-    if(!once) {
-        current_jump_state = onTape;
-    }
+    // if(!once) {
+    //     current_jump_state = onTape;
+    // }
 
-    current_jump_state = perform(current_jump_state);
+    // current_jump_state = perform(current_jump_state);
 
-    if (current_jump_state == isIRReady) {
-        return IR_FOLLOW;
-    }
+    // if (current_jump_state == isIRReady) {
+    //     return IR_FOLLOW;
+    // }
 
-    if (current_jump_state == isLost) {
-        return ERROR;
-    }
+    // if (current_jump_state == isLost) {
+    //     return ERROR;
+    // }
 
     return JUMP;
 
@@ -433,12 +493,15 @@ StateMachine::state StateMachine::errorState() {
         set_differential_steering(direction_flip ? 100 : -100);
     }
 
+
+    // IN this state we are looking to hookup with IR. 
+
     if (IR_present()) {
         ir_count++;
         if (ir_count > 5) {
-        once = false;
-        ir_count = 0;
-        return IR_FOLLOW;
+            once = false;
+            ir_count = 0;
+            return IR_FOLLOW;
         }
     } else {
         ir_count = 0;

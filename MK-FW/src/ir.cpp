@@ -25,7 +25,7 @@ uint32_t top_frequency_cutoff = 1150;
 bool does_need_frequency_check = true;
 uint32_t trials_since_last_check = 0;
 
-double bias = 0.95;
+double bias = 0.9;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -50,13 +50,15 @@ int32_t total_error_IR = 0;
 // the following are coefficents to control the PID logic 
 double close_prop_coef = 0.0004;
 double far_prop_coef = 0.0012;
-double far_away_cutoff = 225;
+double far_away_cutoff = 200;
 double derivative_coef = 0;
 double integral_coef = 0;
 
 
-uint32_t centeredWeight = 1;
-uint32_t outsideWeight = 5;
+uint32_t insideLeftWeight = 1;
+uint32_t insideRightWeight = 1;
+uint32_t outsideRightWeight = 5;
+uint32_t outsideLeftWeight = 5;
 
 uint32_t frequency_check_frequency = 0;
 
@@ -349,7 +351,7 @@ void ir_PID() {
 
   
   uint32_t turn_value = MID_POINT + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
-  //CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
+  CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
   set_raw_steering(turn_value);
  
 }
@@ -376,7 +378,8 @@ int32_t get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_
   int32_t normalized_e_right = normalize_magnitude(total, right_extreme) * bias;
   int32_t normalized_e_left = normalize_magnitude(total, left_extreme) / bias;
 
-  return centeredWeight * (normalized_left - normalized_right) + outsideWeight * (normalized_e_left - normalized_e_right);
+  return insideLeftWeight * normalized_left - insideRightWeight * normalized_right;
+  // outsideLeftWeight * normalized_e_left - outsideRightWeight * normalized_e_right;
 }
 
 /**

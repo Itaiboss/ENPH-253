@@ -8,12 +8,12 @@
  * @retval None
  */
 void set_steering(int32_t turning_value) {
-    if (turning_value > 1000) {
-        turning_value = 1000;
+    if (turning_value > 100) {
+        turning_value = 100;
     }
 
-    if (turning_value < 1000) {
-        turning_value == 1000;
+    if (turning_value < -100) {
+        turning_value = -100;
     }
 
     uint32_t valueToMotor;
