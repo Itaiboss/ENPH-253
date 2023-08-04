@@ -428,7 +428,7 @@ StateMachine::state StateMachine::tapeFollowState2() {
 
     if(!once) {
         follow_step = 0;
-        set_motor_speed(55);
+        set_motor_speed(50);
         //stores the position so that we can know when we are on the ramp. 
         storePosition();
         once = true;

@@ -48,7 +48,7 @@ int32_t last_error_IR = 0;
 int32_t total_error_IR = 0;
 
 // the following are coefficents to control the PID logic 
-double close_prop_coef = 0.0005;
+double close_prop_coef = 0.0008;
 double far_prop_coef = 0.0008;
 double far_away_cutoff = 500;
 double derivative_coef = 0;

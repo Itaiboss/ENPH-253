@@ -20,7 +20,7 @@
 #define POST_ROCKS_MOTOR_SPEED 50
 
 #define RESTART_MOTORS_TIMER 1000
-#define RESTART_MOTOR_SPEED 40
+#define RESTART_MOTOR_SPEED 30
 
 // Settings for how the sensitive should be to the isOnRocks function. 
 #define NUMBER_OF_NON_ROCKS_NEEDED 2
