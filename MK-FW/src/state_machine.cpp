@@ -49,7 +49,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = TAPE_FOLLOW_2;
+    curr_state = START;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -158,19 +158,19 @@ StateMachine::state StateMachine::startState() {
 
     if (!turnComplete) {
         getPosition();
-        CONSOLE_LOG(LOG_TAG, "roll: %i, pitch: %i, yaw: %i, on rocks: %d", getRoll(), getPitch(), getYaw(), isOnRocks());
+        // CONSOLE_LOG(LOG_TAG, "roll: %i, pitch: %i, yaw: %i, on rocks: %d", getRoll(), getPitch(), getYaw(), isOnRocks());
         if (START_SIDE == HIGH) {
             // this line of code coule be very buggy, it is meant to say that stop once you have turned 90 degrees to the right. 
             if (getYaw() < -START_GYRO_CUTOFF) {
                 centre_steering();
-                CONSOLE_LOG(LOG_TAG,"TURN COMPLETE");
+                // CONSOLE_LOG(LOG_TAG,"TURN COMPLETE");
                 turnComplete = true;
             }
         } else {
             // same as above but now we are stopping once we have turned 90 degrees to the left. 
             if (getYaw() > START_GYRO_CUTOFF) {
                 centre_steering();
-                CONSOLE_LOG(LOG_TAG,"TURN COMPLETE");
+                // CONSOLE_LOG(LOG_TAG,"TURN COMPLETE");
                 turnComplete = true;
             }
         }
@@ -201,7 +201,7 @@ StateMachine::state StateMachine::startState() {
 
 
 
-
+uint32_t on_rocks_timer;
 
 StateMachine::state StateMachine::irState() {
     uint32_t timer = millis();
@@ -210,64 +210,111 @@ StateMachine::state StateMachine::irState() {
         rock_step = 0;
         notOnRocksCounter = 0;
         onRocksCounter = 0;
-        set_motor_speed(95);
+        set_motor_speed(98);
         once = true;
-        
     }
 
     // enter this block when we are on the rocks. 
     if (rock_step == 0) {
+        //CONSOLE_LOG(LOG_TAG,"ROCK STEP 0");
         ir_PID();
+
+        // if (is_all_sensors_low(allCentralTapeSensors, 4)) {
+        //     on_rocks_timer = millis();
+        //     cut_motors();
+        //     centre_steering();
+        //     rock_step = 1;
+
+        // }
         getPosition();
         if (isOnRocks()) {
             onRocksCounter++;
-            CONSOLE_LOG(LOG_TAG,"ON ROCKS ++");
+            // CONSOLE_LOG(LOG_TAG,"ON ROCKS ++");
         }
         // only continue to the next steps once multiple trials have been completed. 
         if (onRocksCounter >= NUMBER_OF_ROCKS_NEEDED) {
-            CONSOLE_LOG(LOG_TAG,"set rock state = 1");
+            // CONSOLE_LOG(LOG_TAG,"set rock state = 1");
+            on_rocks_timer = millis();
+            cut_motors();
+            centre_steering();
             rock_step = 1;
         }
     }
-
     if (rock_step == 1) {
-        CONSOLE_LOG(LOG_TAG,"ROCK STEP 1");
-        ir_PID();
-        getPosition();
-        if (isOnRocks) {
-            notOnRocksCounter++;
-        } else {
-            notOnRocksCounter = 0;
+
+        if (millis() - on_rocks_timer > 200) {
+            set_motor_speed(POST_ROCKS_MOTOR_SPEED);
+            centre_steering();
+
         }
-        
-        // increment a consecetive not on rocks counter. 
-        // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
-        if(notOnRocksCounter >= NUMBER_OF_NON_ROCKS_NEEDED) {
-            // may need to be adjusted as needed.
+        // CONSOLE_LOG(LOG_TAG,"ROCK STEP 1");
+        // ir_PID();
+
+        if (is_all_sensors_low(allCentralTapeSensors, 4)) {
             set_motor_speed(POST_ROCKS_MOTOR_SPEED); 
             set_steering(POST_ROCKS_TURN_ANGLE);
-            
             searching_for_tape_timer = millis();
-            
             rock_step = 2;
         }
+
+
+        // getPosition();
+        // if (isOnRocks) {
+        //     notOnRocksCounter++;
+        // } else {
+        //     notOnRocksCounter = 0;
+        // }
+        
+    //     // increment a consecetive not on rocks counter. 
+    //     // if we have reached the set of consecituve not on rocks readings then we must enter the next state. 
+        // if(notOnRocksCounter >= NUMBER_OF_NON_ROCKS_NEEDED) {
+        //     // may need to be adjusted as needed.
+        //     set_motor_speed(POST_ROCKS_MOTOR_SPEED); 
+        //     set_steering(POST_ROCKS_TURN_ANGLE);
+        //     searching_for_tape_timer = millis();
+        //     rock_step = 2;
+        // }
     }
     
     if(rock_step == 2) {
-
+        // CONSOLE_LOG(LOG_TAG,"ROCK STEP 2");
         if (millis() - searching_for_tape_timer > RESTART_MOTORS_TIMER) {
             set_motor_speed(RESTART_MOTOR_SPEED);
-            set_steering(POST_ROCKS_TURN_ANGLE);
             rock_step++;
         }
+        getPosition();
 
+        if (START_SIDE) {
+            if (getYaw() < -80) {
+                set_steering(20);
+            } else if (getYaw() < -90) {
+                set_steering(10);
+            } else if (getYaw() > -110) {
+                set_steering(-20);
+            } else if (getYaw() > -100) {
+                set_steering(-10);
+            }
+
+        } else {
+            if (getYaw() < 80) {
+                set_steering(20);
+            } else if (getYaw() < 90) {
+                set_steering(10);
+            } else if (getYaw() > 110) {
+                set_steering(-20);
+            } else if (getYaw() > 100) {
+                set_steering(-10);
+            }
+        }
     }
 
     if (rock_step == 3) {
-        CONSOLE_LOG(LOG_TAG,"ROCK STEP 3");
+        // CONSOLE_LOG(LOG_TAG,"ROCK STEP 3");
         //will need to be changed when add the more sensors. 
         if (!is_all_sensors_low(allCentralTapeSensors, 4)) {
             once = false;
+            cut_motors();
+            centre_steering();
             return TAPE_FOLLOW_2;
         }
 
@@ -281,7 +328,7 @@ StateMachine::state StateMachine::irState() {
             return TAPE_SEARCH;
         }
     }
-    CONSOLE_LOG(LOG_TAG,"Time:%d", millis()-timer);
+    
     return IR_FOLLOW; 
 }
 
@@ -289,7 +336,7 @@ StateMachine::state StateMachine::irState() {
 StateMachine::state StateMachine::tapeFollowState1() {
     PID(KP,KI,KD);
     if(!once){
-        set_motor_speed(0);
+        set_motor_speed(60);
         once = true;
     }
     return TAPE_FOLLOW_1;
@@ -307,6 +354,8 @@ bool isRandomDirectionRight;
 
 // this needs a comprehensive review. It is really hard set of logic to follow. 
 StateMachine::state StateMachine::tapeSearchState() {
+
+    
 
     isRightActive = digitalRead(TAPE_E_R);
     isLeftActive = digitalRead(TAPE_E_L);

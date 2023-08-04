@@ -7,9 +7,9 @@
 #include <string>
 
 // Settings for the start State
-#define START_SPEED 95
-#define START_TURNING_ANGLE 48
-#define START_GYRO_CUTOFF 49
+#define START_SPEED 75
+#define START_TURNING_ANGLE 30
+#define START_GYRO_CUTOFF 60
 #define TIME_UNTIL_LOST_MODE 5000 // millis
 
 // Modifications for the IR lost mode 
@@ -17,17 +17,17 @@
 
 // Modification for the post rocks motor control 
 #define POST_ROCKS_TURN_ANGLE 10
-#define POST_ROCKS_MOTOR_SPEED 0
+#define POST_ROCKS_MOTOR_SPEED 50
 
 #define RESTART_MOTORS_TIMER 1000
-#define RESTART_MOTOR_SPEED 45
+#define RESTART_MOTOR_SPEED 40
 
 // Settings for how the sensitive should be to the isOnRocks function. 
-#define NUMBER_OF_NON_ROCKS_NEEDED 4
+#define NUMBER_OF_NON_ROCKS_NEEDED 2
 #define NUMBER_OF_ROCKS_NEEDED 4
 
 // How long will search for tape inside the IR functiom
-#define SEARCH_FOR_TAPE_TIME 1000 //millis
+#define SEARCH_FOR_TAPE_TIME 2000 //millis
 
 // How long should we turn in one direction when looking for tape near the IR beacon. 
 #define TAPE_SEARCHING_MODE_MAX_ONE_DIRECTION_TURN 1000 // millis

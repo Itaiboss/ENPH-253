@@ -5,9 +5,9 @@
  */
 #include <stdint.h>
 
-#define KP 30
-#define KI 0
-#define KD -5
+#define KP 45
+#define KI 0.0025
+#define KD -15
 
 
 void pidInit();

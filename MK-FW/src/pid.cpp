@@ -55,17 +55,18 @@ void PID( int32_t kp, int32_t ki, int32_t kd) {
         //0110
         if( !sense_ll && sense_l && sense_r && !sense_rr){
             error = error_table[4];
-        // //1110
-        // } else if( sense_ll && sense_l && sense_r && !sense_rr){
-        //     error = error_table[3];
-        // //0111
-        // }else if( !sense_ll && sense_l && sense_r && sense_rr){
-        //     error = error_table[5];
-        // //0011
-        // }else if( !sense_ll && !sense_l && sense_r && sense_rr){
-        //     error = error_table[6];
-        // //1100
-        } else if( sense_ll && sense_l && !sense_r && !sense_rr){
+        //1110
+        } else if( sense_ll && sense_l && sense_r && !sense_rr){
+            error = error_table[3];
+        //0111
+        }else if( !sense_ll && sense_l && sense_r && sense_rr){
+            error = error_table[5];
+        //0011
+        }else if( !sense_ll && !sense_l && sense_r && sense_rr){
+            error = error_table[6];
+        } 
+        //1100
+         else if( sense_ll && sense_l && !sense_r && !sense_rr){
             error = error_table[2];
         //1000
         } else if( sense_ll && !sense_l && !sense_r && !sense_rr){
@@ -84,13 +85,13 @@ void PID( int32_t kp, int32_t ki, int32_t kd) {
             }
         } else if (sense_ll && sense_l && sense_r && sense_rr) {
             error = 0;
-        }else{
+        } else {
             error = last_error;
         }
         if (error != 0) {
             //set_differential_steering(0);
         }
-        CONSOLE_LOG(LOG_TAG,"TAPE LL:%d TAPE L:%d TAPE R:%d TAPE RR:%d", sense_ll,sense_l, sense_r, sense_rr);
+        // CONSOLE_LOG(LOG_TAG,"TAPE LL:%d TAPE L:%d TAPE R:%d TAPE RR:%d", sense_ll,sense_l, sense_r, sense_rr);
         //CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
         if (total_error >= max_control) {
@@ -104,7 +105,7 @@ void PID( int32_t kp, int32_t ki, int32_t kd) {
         last_error = error;
         last_r = sense_r;
         last_l = sense_l;
-        //CONSOLE_LOG(LOG_TAG, "Time: %d",millis()-last_time);
+        // CONSOLE_LOG(LOG_TAG, "Time: %d",millis()-last_time);
         last_time = millis();
         set_raw_steering(control);
     }

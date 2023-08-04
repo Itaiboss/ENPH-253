@@ -20,19 +20,19 @@
 #define ZERO PB4 
 #define TAPE_L PA12
 #define TAPE_LL PA11
-#define TAPE_RR PB10
-#define TAPE_R PB1
+#define TAPE_RR PB1
+#define TAPE_R PB10
 #define TAPE_E_L PB15
 #define TAPE_E_R PB14
 #define IR_R PA0
 #define IR_L PA1
 #define IR_E_R PA5
 #define IR_E_L PA4
-#define START_SIDE HIGH
+#define START_SIDE LOW
 // Fixed variables 
 #define LEFT_MAX 370
 #define RIGHT_MAX 20
-#define MID_POINT 222
+#define MID_POINT 229
 #define IR_BEACON_DIST 100
 
 

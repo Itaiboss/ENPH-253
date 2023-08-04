@@ -18,14 +18,14 @@ double extreme_left_ir_reading[NUM_SAMPLES] = {0};
 double extreme_right_ir_reading[NUM_SAMPLES] = {0};
 
 
-uint32_t signalAmplitudeCutOff = 50;
+uint32_t signalAmplitudeCutOff = 20;
 uint32_t bottom_frequency_cutoff = 950;
 uint32_t expected_frequency = 1000;
 uint32_t top_frequency_cutoff = 1150;
 bool does_need_frequency_check = true;
 uint32_t trials_since_last_check = 0;
 
-double bias = 0.9;
+double bias = 1;
 
 // A one kilohertz sine wave.
 uint32_t left_max_val = 0;
@@ -48,17 +48,17 @@ int32_t last_error_IR = 0;
 int32_t total_error_IR = 0;
 
 // the following are coefficents to control the PID logic 
-double close_prop_coef = 0.0004;
-double far_prop_coef = 0.0012;
-double far_away_cutoff = 200;
+double close_prop_coef = 0.0005;
+double far_prop_coef = 0.0008;
+double far_away_cutoff = 500;
 double derivative_coef = 0;
 double integral_coef = 0;
 
 
-uint32_t insideLeftWeight = 1;
-uint32_t insideRightWeight = 1;
-uint32_t outsideRightWeight = 5;
-uint32_t outsideLeftWeight = 5;
+double insideLeftWeight = 0.7;
+double insideRightWeight = 1.3;
+double outsideRightWeight = 5.5;
+double outsideLeftWeight = 5.5;
 
 uint32_t frequency_check_frequency = 0;
 
@@ -185,8 +185,8 @@ bool IR_present() {
   if (isFrequencyValid(right_extreme_frequency)) {
     right_extreme_amplitude = extreme_right_max_val - extreme_right_min_val;
   }
-  CONSOLE_LOG(LOG_TAG, "FREQ l: %i, r: %i, le: %i, re: %i", (int) left_frequency, (int) right_frequency, (int) left_extreme_frequency, (int) right_extreme_frequency);
-  CONSOLE_LOG(LOG_TAG, "AMP l: %i, r: %i, le: %i, re: %i", (int) left_amplitude, (int) right_amplitude, (int) left_extreme_ampltude, (int) right_extreme_amplitude);
+  // CONSOLE_LOG(LOG_TAG, "FREQ l: %i, r: %i, le: %i, re: %i", (int) left_frequency, (int) right_frequency, (int) left_extreme_frequency, (int) right_extreme_frequency);
+  // CONSOLE_LOG(LOG_TAG, "AMP l: %i, r: %i, le: %i, re: %i", (int) left_amplitude, (int) right_amplitude, (int) left_extreme_ampltude, (int) right_extreme_amplitude);
 
 
     if (left_amplitude > MIN_DETECTION_AMPLITUDE) {
@@ -303,7 +303,7 @@ void ir_PID() {
     right_extreme_amplitude = 0;
   }
 
-  CONSOLE_LOG(LOG_TAG, "r: %i, e: %i, l: %i, e: %i", (int) right_amplitude, (int) right_extreme_amplitude, (int) left_amplitude, (int) left_extreme_ampltude);
+  // CONSOLE_LOG(LOG_TAG, "[%i, %i, %i, %i]", (int) left_extreme_ampltude, (int) left_amplitude, (int) right_amplitude, (int) right_extreme_amplitude);
 
   uint32_t max = 0;
   if (right_amplitude > max) {
@@ -314,15 +314,7 @@ void ir_PID() {
     max = left_amplitude;
   }
 
-  if (left_extreme_ampltude > max) {
-    max = right_amplitude;
-  }
-
-  if (right_extreme_amplitude > max) {
-    max = left_amplitude;
-  }
-
-  CONSOLE_LOG(LOG_TAG, "max val: %i", max);
+  // CONSOLE_LOG(LOG_TAG, "max val: %i", max);
 
 
   
@@ -340,7 +332,7 @@ void ir_PID() {
 
   current_error = get_error(right_amplitude, left_amplitude, right_extreme_amplitude, left_extreme_ampltude);
 
-  CONSOLE_LOG(LOG_TAG, "error is: %i", (int) current_error);
+  // CONSOLE_LOG(LOG_TAG, "error is: %i", (int) current_error);
 
   uint32_t total_time = millis() - time_marker;
   uint32_t derivative_error = (current_error - last_error_IR);
@@ -351,7 +343,7 @@ void ir_PID() {
 
   
   uint32_t turn_value = MID_POINT + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
-  CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
+  // CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
   set_raw_steering(turn_value);
  
 }
@@ -378,8 +370,7 @@ int32_t get_error(uint32_t right, uint32_t left, uint32_t right_extreme, uint32_
   int32_t normalized_e_right = normalize_magnitude(total, right_extreme) * bias;
   int32_t normalized_e_left = normalize_magnitude(total, left_extreme) / bias;
 
-  return insideLeftWeight * normalized_left - insideRightWeight * normalized_right;
-  // outsideLeftWeight * normalized_e_left - outsideRightWeight * normalized_e_right;
+  return insideLeftWeight * normalized_left - insideRightWeight * normalized_right + outsideLeftWeight * normalized_e_left - outsideRightWeight * normalized_e_right;
 }
 
 /**
