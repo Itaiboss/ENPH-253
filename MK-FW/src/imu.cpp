@@ -53,7 +53,7 @@ void getPosition(){
  * @retval True if the current acceleration is upwards. 
  */
 bool isUpwardsAcceleration() {
-    if (mpu.getAccX() > 0) {
+    if (mpu.getAccZ() > 0) {
         return true;
     }
 

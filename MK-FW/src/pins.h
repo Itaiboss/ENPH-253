@@ -11,15 +11,15 @@
  */
 // pin definitions
 #define SERVO PA_2
-#define LEFT_MOTOR_FORWARD PA_3
-#define LEFT_MOTOR_BACKWARD PA_6
-#define RIGHT_MOTOR_FORWARD PB_9
-#define RIGHT_MOTOR_BACKWARD PB_8
+#define LEFT_MOTOR_FORWARD PB_9
+#define LEFT_MOTOR_BACKWARD PB_8
+#define RIGHT_MOTOR_FORWARD PA_3
+#define RIGHT_MOTOR_BACKWARD PA_6
 #define I2C_SDA PB7
 #define I2C_SCL PB6
 #define ZERO PB4 
-#define TAPE_L PA12
-#define TAPE_LL PA11
+#define TAPE_L PA11
+#define TAPE_LL PA12
 #define TAPE_RR PB1
 #define TAPE_R PB10
 #define TAPE_E_L PB15
@@ -30,9 +30,9 @@
 #define IR_E_L PA4
 #define START_SIDE LOW
 // Fixed variables 
-#define LEFT_MAX 370
-#define RIGHT_MAX 20
-#define MID_POINT 229
+#define LEFT_MAX 390
+#define RIGHT_MAX 255
+#define MID_POINT 320
 #define IR_BEACON_DIST 100
 
 

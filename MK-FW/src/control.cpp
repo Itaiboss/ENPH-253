@@ -41,15 +41,23 @@ volatile double motorSpeed = 0;
  */
 void set_motor_speed(int32_t speed) {
     if (speed > 0) {
+        pwm_start(LEFT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(LEFT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(RIGHT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
     } else if (speed < 0) {
         pwm_start(LEFT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, - (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(RIGHT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, - (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(LEFT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
     } else {
         cut_motors();
     }
     motorSpeed = speed;
+}
+
+void cut_servo() {
+    pwm_stop(SERVO);
 }
 
 /**
@@ -78,12 +86,28 @@ void set_differential_steering(int32_t difference) {
     if (motorSpeed > 0) {
         if (difference > 0) {
             pwm_start(LEFT_MOTOR_FORWARD, 1000, motorSpeed - (double) difference / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
-        } else {
+            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
+        } else if (difference < 0) {
             pwm_start(RIGHT_MOTOR_FORWARD, 1000, motorSpeed + (double) difference / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(LEFT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
+        } else {
+            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(LEFT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
+
         }
-        
+
     }
 
+}
+
+void spin_in_circle(bool right) {
+    if (right) {
+        pwm_start(LEFT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_BACKWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
+    } else {
+        pwm_start(LEFT_MOTOR_BACKWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
+    }
 }
 
 void centre_steering() {

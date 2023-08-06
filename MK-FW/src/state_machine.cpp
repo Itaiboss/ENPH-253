@@ -45,11 +45,11 @@ StateMachine::StateMachine() {
 
 StateMachine::~StateMachine() {
     CONSOLE_LOG(LOG_TAG, "Destroyed the state machine");
-    }
+}
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = START;
+    curr_state = TAPE_FOLLOW_2;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -202,16 +202,18 @@ StateMachine::state StateMachine::startState() {
 
 
 uint32_t on_rocks_timer;
+uint32_t counter;
 
 StateMachine::state StateMachine::irState() {
     uint32_t timer = millis();
     // assigns the rock step be one at the start. this means that we have yet to reach the rocks. 
     if(!once){
-        rock_step = 0;
+        rock_step = 1;
         notOnRocksCounter = 0;
         onRocksCounter = 0;
-        set_motor_speed(98);
+        set_motor_speed(95);
         once = true;
+        counter = 0;
     }
 
     // enter this block when we are on the rocks. 
@@ -227,7 +229,7 @@ StateMachine::state StateMachine::irState() {
 
         // }
         getPosition();
-        if (isOnRocks()) {
+        if (isOnRocks() && (digitalRead(TAPE_L) + digitalRead(TAPE_R)) + digitalRead(TAPE_LL) + digitalRead(TAPE_RR) >= 2) {
             onRocksCounter++;
             // CONSOLE_LOG(LOG_TAG,"ON ROCKS ++");
         }
@@ -242,7 +244,7 @@ StateMachine::state StateMachine::irState() {
     }
     if (rock_step == 1) {
 
-        if (millis() - on_rocks_timer > 200) {
+        if (millis() - on_rocks_timer > 300) {
             set_motor_speed(POST_ROCKS_MOTOR_SPEED);
             centre_steering();
 
@@ -280,54 +282,95 @@ StateMachine::state StateMachine::irState() {
         // CONSOLE_LOG(LOG_TAG,"ROCK STEP 2");
         if (millis() - searching_for_tape_timer > RESTART_MOTORS_TIMER) {
             set_motor_speed(RESTART_MOTOR_SPEED);
+            centre_steering();
             rock_step++;
         }
-        getPosition();
-
-        if (START_SIDE) {
-            if (getYaw() < -80) {
-                set_steering(20);
-            } else if (getYaw() < -90) {
-                set_steering(10);
-            } else if (getYaw() > -110) {
-                set_steering(-20);
-            } else if (getYaw() > -100) {
-                set_steering(-10);
-            }
-
-        } else {
-            if (getYaw() < 80) {
-                set_steering(20);
-            } else if (getYaw() < 90) {
-                set_steering(10);
-            } else if (getYaw() > 110) {
-                set_steering(-20);
-            } else if (getYaw() > 100) {
-                set_steering(-10);
-            }
-        }
+        
     }
 
     if (rock_step == 3) {
         // CONSOLE_LOG(LOG_TAG,"ROCK STEP 3");
         //will need to be changed when add the more sensors. 
-        if (!is_all_sensors_low(allCentralTapeSensors, 4)) {
-            once = false;
-            cut_motors();
-            centre_steering();
-            return TAPE_FOLLOW_2;
+        if (digitalRead(TAPE_L) + digitalRead(TAPE_LL) + digitalRead(TAPE_R) + digitalRead(TAPE_RR) >= 2) {
+            counter++;
+            
+            
+        } else {
+            // if (!is_all_sensors_low(allOutsideTapeSensors, 1)) {
+            //     once = false;
+            //     return TAPE_SEARCH;
+            // }
+
+            // if (millis() - searching_for_tape_timer > SEARCH_FOR_TAPE_TIME) {
+            //     return TAPE_SEARCH;
+            // }
+
         }
 
-        if (!is_all_sensors_low(allOutsideTapeSensors, 1)) {
-            once = false;
-            return TAPE_SEARCH;
+        if (counter >= 3) {
+            rock_step = 4;
+            counter = 0;
         }
 
-        if (millis() - searching_for_tape_timer > SEARCH_FOR_TAPE_TIME) {
-            once = false; 
-            return TAPE_SEARCH;
+
+    }
+
+    uint32_t have_seen_tape_once_timer;
+
+
+    if (rock_step == 4) {
+
+        if (is_all_sensors_low(allCentralTapeSensors, 4)) {
+            rock_step = 5;
+        }
+
+    }
+
+    if (rock_step == 5) {
+        spin_in_circle(false);
+        set_steering(-100);
+        rock_step = 6;
+    }
+
+    if (rock_step == 6) {
+        if (digitalRead(TAPE_L) + digitalRead(TAPE_LL) + digitalRead(TAPE_R) + digitalRead(TAPE_RR) >= 2) {
+            have_seen_tape_once_timer = millis();
+            rock_step = 7;
         }
     }
+
+    
+
+    if (rock_step == 7 && millis() - have_seen_tape_once_timer > 350) {
+        if (is_all_sensors_low(allCentralTapeSensors, 4)) {
+            counter++;
+        }
+
+        if (counter >= 15) {
+            counter = 0;
+            rock_step = 8;
+        }
+    }
+
+    if (rock_step == 8) {
+        set_motor_speed(55);
+        set_steering(-78);
+        rock_step = 9;
+    }
+    
+    if(rock_step == 9 && (digitalRead(TAPE_L) + digitalRead(TAPE_LL) + digitalRead(TAPE_R) + digitalRead(TAPE_RR) >= 1)) {
+        once = false;
+        return TAPE_FOLLOW_2;
+    }
+
+    // if (rock_step >= 4) {
+    //     // if (millis() - have_seen_tape_once_timer > PAST_TAPE_TIME_TO_GET_BACK_ON) {
+    //     //     once = false;
+    //     //     cut_motors();
+    //     //     centre_steering();
+    //     //     return TAPE_SEARCH;
+    //     // }
+    // }
     
     return IR_FOLLOW; 
 }
@@ -423,33 +466,35 @@ StateMachine::state StateMachine::tapeSearchState() {
 int follow_step = 0;
 uint32_t trial_counter_tape;
 bool has_slowed_down = false;
+uint32_t tape_follow_state_timer;
+
 
 StateMachine::state StateMachine::tapeFollowState2() {
 
     if(!once) {
         follow_step = 0;
-        set_motor_speed(50);
+        set_motor_speed(55);
         //stores the position so that we can know when we are on the ramp. 
         storePosition();
         once = true;
         trial_counter_tape = 0;
+        tape_follow_state_timer = millis();
     }
     if (follow_step < 1){
-    PID(KP,KI,KD);
+        PID(KP,KI,KD);
     } else {
-    PID(15,0,-8);
+        PID(15,0,0);
     }
     getPosition();
     double incline_angle;
     incline_angle = atan(sqrt(pow(tan((double) getPitch()* PI / 180.0), 2) + pow(tan( (double) getRoll()* PI / 180.0), 2))) * 180 / PI;
+    //CONSOLE_LOG(LOG_TAG, "angle of incline: %i", (int) incline_angle);
     //CONSOLE_LOG(LOG_TAG, "angle: %d", (int) incline_angle);
     // this block handles before you have hit the first marker. 
-    if (follow_step == 0) {
+    if (follow_step == 0 && millis() - tape_follow_state_timer > 1000) {
         // CONSOLE_LOG(LOG_TAG, "pitch: %i", getPitch());
 
-        
-        
-        if (incline_angle > 7.5) {
+        if (incline_angle > 9) {
             trial_counter_tape++;
         } else {
             trial_counter_tape = 0;
@@ -459,25 +504,21 @@ StateMachine::state StateMachine::tapeFollowState2() {
         if (trial_counter_tape >= 7) {
             trial_counter_tape = 0;
             
-            CONSOLE_LOG(LOG_TAG, "on ramp");
-            set_motor_speed(75); //maybe needs extra error correction to make sure the others are still on the tape. 
+            // CONSOLE_LOG(LOG_TAG, "on ramp");
+            set_motor_speed(82); //maybe needs extra error correction to make sure the others are still on the tape. 
             on_ramp_time = millis();
             follow_step = 1;
             // zeros the position 
         }
     }
 
-    if (follow_step == 1 && millis() - on_ramp_time > 500 && !has_slowed_down) {
-        set_motor_speed(81);
-        has_slowed_down = true;
-        storePosition();
-    }
+    
 
     // this block handles before you have hit the second marker. 
     if (follow_step == 1 && millis()- on_ramp_time > 1500) {
         //TODO:ADD gyro check as well
 
-        if ((incline_angle > 4 && has_slowed_down)) {
+        if ((incline_angle < 4)) {
             trial_counter_tape++;
         } else {
             trial_counter_tape = 0;
@@ -493,9 +534,10 @@ StateMachine::state StateMachine::tapeFollowState2() {
         // }
         
 
-        if (trial_counter_tape >= 7) {
+        if (trial_counter_tape >= 15) {
             trial_counter_tape = 0;
             follow_step = 0;
+            once = false;
             storePosition();
             return JUMP;
         }
@@ -507,23 +549,26 @@ StateMachine::state StateMachine::tapeFollowState2() {
 
 StateMachine::state StateMachine::jumpState() {
 
-    cut_motors();
 
 
     // if this if the first call the starting state should be onTape. 
-    // if(!once) {
-    //     current_jump_state = onTape;
-    // }
+    if(!once) {
+        current_jump_state = onTape;
+        once = true;
+    }
 
-    // current_jump_state = perform(current_jump_state);
+    current_jump_state = perform(current_jump_state);
 
-    // if (current_jump_state == isIRReady) {
-    //     return IR_FOLLOW;
-    // }
+    if (current_jump_state == isIRReady) {
+        centre_steering();
+        storePosition();
+        return IR_FOLLOW;
+    }
 
-    // if (current_jump_state == isLost) {
-    //     return ERROR;
-    // }
+    if (current_jump_state == isLost) {
+        once = false;
+        return ERROR;
+    }
 
     return JUMP;
 
@@ -564,3 +609,4 @@ StateMachine::state StateMachine::errorState() {
 
     return ERROR;
 }
+

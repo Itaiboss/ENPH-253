@@ -189,29 +189,10 @@ bool IR_present() {
   // CONSOLE_LOG(LOG_TAG, "AMP l: %i, r: %i, le: %i, re: %i", (int) left_amplitude, (int) right_amplitude, (int) left_extreme_ampltude, (int) right_extreme_amplitude);
 
 
-    if (left_amplitude > MIN_DETECTION_AMPLITUDE) {
-      resetMaximums();
-      return true;
-    }
-
-    if (right_amplitude > MIN_DETECTION_AMPLITUDE) {
-      resetMaximums();
-      return true;
-    }
-
-    if (left_extreme_ampltude > MIN_DETECTION_AMPLITUDE) {
-      resetMaximums();
-      return true;
-    }
-
-    if (right_extreme_amplitude > MIN_DETECTION_AMPLITUDE) {
-      resetMaximums();
-      return true;
-    }
+  int counter = (left_amplitude > MIN_DETECTION_AMPLITUDE) + (right_amplitude > MIN_DETECTION_AMPLITUDE) + (right_extreme_amplitude > MIN_DETECTION_AMPLITUDE) + (left_extreme_ampltude > MIN_DETECTION_AMPLITUDE);
 
   resetMaximums();
-
-  return false;
+  return counter >= 1;
 
 }
 
@@ -344,6 +325,11 @@ void ir_PID() {
   
   uint32_t turn_value = MID_POINT + prop_coef * current_error + derivative_coef * derivative_error + integral_coef * total_error_IR;
   // CONSOLE_LOG(LOG_TAG, "error is: %i, turn Value is: %i", (int) current_error, (int) turn_value);
+  if (turn_value > LEFT_MAX) {
+    turn_value = LEFT_MAX;
+  } else if (turn_value < RIGHT_MAX) {
+    turn_value = RIGHT_MAX;
+  }
   set_raw_steering(turn_value);
  
 }

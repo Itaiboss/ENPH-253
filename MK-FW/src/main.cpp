@@ -46,66 +46,46 @@ void setup() {
   pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
   imuInit();
   storePosition();
-  set_motor_speed(85);
+  // set_motor_speed(100);
+  centre_steering();
+  // pwm_start(LEFT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
+  // pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3000, RESOLUTION_12B_COMPARE_FORMAT);
   
   start_time_main = millis();
-
-  /* 
-  BLOCK 1. IR_PID
-  */
   
-  
-
-  /*
-  BLOCK 2. TAPE FOLLOW 
-  */
-
-
-
-
-
- /*
- BLOCK 3. JUMP SEQUENCE. 
- */
-
-// set_motor_speed(0.9, true);
-// set_steering(0, false);
-
-
-/*
-BLOCK 4:  
-*/
-
-  // storePosition();
-  // set_raw_steering(300);
-  // set_motor_speed(0.65, true);
-  // has_finished = false;
-
-
-/*
-BLOCK 5: more complicated jump sequence. 
-*/
-// jumpState = onTape;
+  jumpState = onTape;
 }
 
 
 
 
-// bool once= false;
+bool once_main = false;
 
 
 
 void loop() {
-  // centre_steering();
-  //set_raw_steering(MID_POINT);
+  
+  // set_raw_steering(25);
   // set_motor_speed( 85);
 
   // ir_PID();
+  // if (!once_main) {
+
+    // if (millis() - start_time_main > 400) {
+    //   spin_in_circle(false);
+    //   set_steering(-100);
+    //   once_main = true;
+    // }
+  // }
 
 
 
+  // if (millis() - start_time_main > 2000) {
+  //   cut_motors();
+  //   centre_steering();
+  // }
 
-  //PID();
+
 
   state_machine.determineState();
 
@@ -123,102 +103,8 @@ void loop() {
 
   // ir_PID();
 
-
-
-  // jumpState = perform(jumpState);
-
-
   
-  // CONSOLE_LOG(LOG_TAG, "long right: %i, right: %i, left: %i", digitalRead(TAPE_E_R), digitalRead(TAPE_R), digitalRead(TAPE_L));
-  // CONSOLE_LOG(LOG_TAG, "current state: %i", jumpState);
   
-
-  // if (jumpState == onGround) {
-  //   if (!once_loop) {
-  //     set_differential_steering(0.4, true);
-  //     set_motor_speed(0.95, true);
-
-  //   }
-  //   getPosition();
-  //   if (getYaw() > 160) {
-  //     set_motor_speed(0, true);
-  //   }
-
-  // }
 
   // state_machine.determineState();
-
-  
-
-  
-  /* 
-  BLOCK 1. IR_PID
-  */
-  
-  //ir_PID();
-
-  /*
-  BLOCK 2. TAPE FOLLOW 
-  */
-
-//  PID();
-
- /*
- BLOCK 3. JUMP SEQUENCE. 
- */
-// if (once_loop) {
-//   if (millis() - start_time_main > 4000) {
-//     set_motor_speed(0, false);
-//     set_raw_steering(300);
-//     once_loop = false;
-//   }
-// }
-
-/*
-BLOCK 4:  
-*/
-
-
-
-
-// if(millis() - start_time_main > 900) {
-//   set_motor_speed(0.7, true);
-//   has_finished = true;
-//   set_raw_steering(MID_POINT);
-// }
-
-// if(has_finished) {
-//   ir_PID();
-// }
-
-
-
-
-
-
-/*
-BLOCK 5: more complicated jump sequence. 
-*/
-
-// jumpState = perform(jumpState);
-
-// if (jumpState == onGround) {
-//   set_motor_speed(0.9, true);
-//   set_raw_steering(300);
-// }
-// getPosition();
-// CONSOLE_LOG(LOG_TAG, "roll: %i, pitch: %i, yaw: %i, on rocks: %d", getRoll(), getPitch(), getYaw(), isOnRocks());
-
-
-
-
-
-
-
-
-  
-
-    
-
-  
 }

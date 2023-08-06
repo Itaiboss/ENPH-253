@@ -29,10 +29,10 @@ int32_t last_error;
 int32_t d_error;
 int32_t max_control = LEFT_MAX;
 int32_t min_control = RIGHT_MAX;
-int32_t diff = 0;
+bool diff = 0;
 int32_t integral_max = 250;
 int32_t integral_min = 250;
-const int32_t error_table[9]={4,2,1,0,0,0,-1,-2,-4,}; 
+const int32_t error_table[9]={9,4,2,1,0,1,-2,-4,-9,}; 
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
@@ -45,7 +45,8 @@ void pidInit() {
 
 void PID( int32_t kp, int32_t ki, int32_t kd) {
     error = 0;
-    if (millis()- last_time > time_ms) {
+    diff = false; 
+    //if (millis()- last_time > time_ms) {
         diff = 0;
         sense_r = digitalRead(TAPE_R);
         sense_l = digitalRead(TAPE_L);
@@ -62,7 +63,7 @@ void PID( int32_t kp, int32_t ki, int32_t kd) {
         }else if( !sense_ll && sense_l && sense_r && sense_rr){
             error = error_table[5];
         //0011
-        }else if( !sense_ll && !sense_l && sense_r && sense_rr){
+        } else if( !sense_ll && !sense_l && sense_r && sense_rr){
             error = error_table[6];
         } 
         //1100
@@ -72,43 +73,52 @@ void PID( int32_t kp, int32_t ki, int32_t kd) {
         } else if( sense_ll && !sense_l && !sense_r && !sense_rr){
             error = error_table[1];
         //0001
-        }else if( !sense_ll && !sense_l && !sense_r && sense_rr){
+        } else if( !sense_ll && !sense_l && !sense_r && sense_rr){
             error = error_table[7];
         //0000
         } else if( !sense_ll && !sense_l && !sense_r && !sense_rr){
             if (last_error < 0) {
                 error = error_table[8];
-                //set_differential_steering(-50);
+                // set_differential_steering(-20);
+                diff = true;
             } else if (last_error > 0){
                 error = error_table[0];
-                //set_differential_steering(50);
+                // set_differential_steering(20);
+                diff =true; 
             }
-        } else if (sense_ll && sense_l && sense_r && sense_rr) {
-            error = 0;
+        // } else if (sense_ll && sense_l && sense_r && sense_rr) {
+        //     error = 0;
         } else {
             error = last_error;
         }
-        if (error != 0) {
-            //set_differential_steering(0);
+        if (!diff) {
+            // set_differential_steering(0);
         }
-        // CONSOLE_LOG(LOG_TAG,"TAPE LL:%d TAPE L:%d TAPE R:%d TAPE RR:%d", sense_ll,sense_l, sense_r, sense_rr);
-        //CONSOLE_LOG(LOG_TAG,"%d",error);
+        CONSOLE_LOG(LOG_TAG,"%d,%d,%d,%d", sense_ll,sense_l, sense_r, sense_rr);
+        // CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
-        if (total_error >= max_control) {
-            total_error = max_control;
-        } else if (total_error <= min_control) {
-            total_error = min_control;
-        }
         d_error = error-last_error;
         control = kp*error + (ki*time_ms)*total_error + (kd/time_ms)*d_error + MID_POINT;
-        //CONSOLE_LOG(LOG_TAG,"%d",control);
+        // CONSOLE_LOG(LOG_TAG,"%i",control);
+        if (control >= max_control) {
+            control = max_control;
+        } else if (control <= min_control) {
+            control = min_control;
+        }
+
+        if (abs(error) > 2) {
+            digitalWrite(PC13, HIGH);
+        } else {
+            digitalWrite(PC13, LOW);
+        }
+        // CONSOLE_LOG(LOG_TAG,"%i",control);
         last_error = error;
         last_r = sense_r;
         last_l = sense_l;
         // CONSOLE_LOG(LOG_TAG, "Time: %d",millis()-last_time);
         last_time = millis();
-        set_raw_steering(control);
-    }
+        // set_raw_steering(control);
+    //}
 }
 bool tapeIsPresent() {
     return digitalRead(TAPE_L) || digitalRead(TAPE_R);

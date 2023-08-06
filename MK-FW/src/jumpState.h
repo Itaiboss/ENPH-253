@@ -7,18 +7,18 @@
 #define NUM_OF_TRIALS 5
 
 // a set of controls to manage the prejump seqeunce
-#define PREJUMP_STEERING_ANGLE 10
-#define PREJUMP_MOTOR_SPEED 95
+#define PREJUMP_STEERING_ANGLE 20
+#define PREJUMP_MOTOR_SPEED 100
 
 // a set of controls for the on rocks landed sequence. 
 #define LANDED_TURNING_ANGLE 45
-#define LANDED_MOTOR_SPEED 90
+#define LANDED_MOTOR_SPEED 100
 #define LANDED_DIFFERENTIAL 15
 #define ON_GROUND_WAIT_TIME 500 // in milliseconds
 
 // a set of controls for the post rocks landed sequence
-#define LOST_BOY_TURNING_ANGLE 60
-#define LOST_BOY_MOTOR_SPEED 65
+#define LOST_BOY_TURNING_ANGLE 75
+#define LOST_BOY_MOTOR_SPEED 72
 #define LOST_BOY_DIFFERENTIAL 45
 #define MIN_TURN_ANGLE 160;
 #define WAITING_TIME 4500 // in milliseconds how long to wait before going into lost mode. 

@@ -15,7 +15,7 @@ uint32_t trialCounter = 0;
 uint32_t off_rocks_timer = 0;
 uint32_t tape_checking_sensors[] =  {
     TAPE_R, 
-    TAPE_E_R, 
+    // TAPE_E_R, 
     TAPE_L,
     TAPE_LL,
     TAPE_RR,
@@ -29,13 +29,19 @@ uint32_t jump_checking_sensors[] = {
 
 bool findSonar = false;
 bool once_jump = false;
+uint32_t on_ground_timer = 0;
+uint32_t on_ground_stepper = 0;
+bool has_centered_steering = false;
 
 
 JumpState perform(JumpState current_state) {
+
+    
     // No matter your state the trial counter will be reset to 0. 
     if(!once_jump) {
         trialCounter = 0;
     }
+
     // ONTAPE block. 
     if (current_state == onTape) {
         // angle the steering ever so slightly towards the left and kick the motors close to top speed. 
@@ -45,10 +51,13 @@ JumpState perform(JumpState current_state) {
             set_steering(PREJUMP_STEERING_ANGLE);
             once_jump = true;
         }
+
+        // CONSOLE_LOG(LOG_TAG, "r: %i rr:%i  l: %i ll:%i ", digitalRead(TAPE_R), digitalRead(TAPE_RR), digitalRead(TAPE_L), digitalRead(TAPE_LL));
         
         // check the rightmost 3 sensor to see if the are reading white. 
         // To know we are off the tape we will have to have multiple consecutive trials where the tape goes white. 
-        if (is_all_sensors_low(tape_checking_sensors, 5)) {
+        if (is_all_sensors_low(tape_checking_sensors, 4)) {
+            
             trialCounter++;
         } else {
             trialCounter = 0;
@@ -58,16 +67,24 @@ JumpState perform(JumpState current_state) {
             once_jump = false;
             return offTape;
         }
+
         return onTape;
     }
 
     // OFFTAPE block
 
     if (current_state == offTape) {
+
+        CONSOLE_LOG(LOG_TAG, "r: %i rr:%i  l: %i ll:%i ", digitalRead(TAPE_R), digitalRead(TAPE_RR), digitalRead(TAPE_L), digitalRead(TAPE_LL));
+
+        if (!once_jump) {
+            once_jump = true;
+        }
         
         // checks to see if all 4 sensors are reading black. 
         // If they are all black for multiple consective times then we know we are now in the air. 
         if (is_all_sensors_high(jump_checking_sensors, 4)) {
+
             trialCounter++;
         } else {
             trialCounter = 0;
@@ -78,6 +95,7 @@ JumpState perform(JumpState current_state) {
             once_jump = false; 
             return inAir;
         }
+        return offTape;
     }
     
 
@@ -87,7 +105,7 @@ JumpState perform(JumpState current_state) {
         // once we are in the air we should cut the motors to zero and turn our wheel in preperation of landing. 
         if (!once_jump) {
             CONSOLE_LOG(LOG_TAG, "cutting motors during jump");
-            cut_motors();
+            set_motor_speed(45);
             set_steering(LANDED_TURNING_ANGLE);
             once_jump = true;
         }
@@ -107,11 +125,10 @@ JumpState perform(JumpState current_state) {
 
     // ONGROUND block
 
-    uint32_t on_ground_timer = 0;
-    uint32_t on_ground_stepper = 0;
-    bool has_centered_steering = false;
-
     if (current_state == onGround) {
+
+        CONSOLE_LOG(LOG_TAG, "step: %i", on_ground_stepper);
+        CONSOLE_LOG(LOG_TAG,"%i",once_jump);
         
         // start the given timer and assign the  step variable to 0.
         if (!once_jump) {
@@ -128,8 +145,12 @@ JumpState perform(JumpState current_state) {
         // Note that steering is not set here as it has already been defined above. 
 
         if (millis() - on_ground_timer > ON_GROUND_WAIT_TIME && on_ground_stepper == 0) {
-            set_motor_speed(LANDED_MOTOR_SPEED);
-            set_differential_steering(LANDED_DIFFERENTIAL);
+            // set_motor_speed(LANDED_MOTOR_SPEED);
+            
+            pwm_start(RIGHT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(LEFT_MOTOR_FORWARD, 1000, 3000, RESOLUTION_12B_COMPARE_FORMAT);
+            set_steering(85);
+    
             on_ground_stepper = 1;
         }
 
@@ -139,6 +160,7 @@ JumpState perform(JumpState current_state) {
         // (Again we wait until we have received enough consecuitive reading to move on)
         if (on_ground_stepper == 1) {
             if (is_all_sensors_low(jump_checking_sensors, 4)) {
+
                 trialCounter++;
             } else {
                 trialCounter = 0;
@@ -158,7 +180,7 @@ JumpState perform(JumpState current_state) {
         if (on_ground_stepper == 2) {
             set_motor_speed(LOST_BOY_MOTOR_SPEED);
             set_steering(LOST_BOY_TURNING_ANGLE);
-            set_differential_steering(LOST_BOY_DIFFERENTIAL);
+            
             off_rocks_timer = millis();
             on_ground_stepper = 3;
         }
@@ -173,37 +195,52 @@ JumpState perform(JumpState current_state) {
             if (getYaw() > MIN_ANGLE_TO_STOP_TURNING || getYaw() < -140) {
                 // this is when we would expect us to reach this angle. and we should stop our steering and continue our current speed forward. 
                 centre_steering();
+                cut_motors();
                 set_motor_speed(LOST_BOY_MOTOR_SPEED);
                 on_ground_stepper = 4;
                 }
             }
-        }
+        
         // STEP 4. 
 
         // this step will handle the end condition if we go out turning range and return us to the spot we would like to be. 
         //ATTENTION problematic code ahead, use with care
-        if(on_ground_stepper == 4) {
-            getPosition();
-            if (getYaw() < MIN_ANGLE_TO_STOP_TURNING) {
-                set_differential_steering(30);
-            } else if (getYaw() > -140) {
-                set_differential_steering(-30);
-            }
-            on_ground_stepper = 3;
-        }
+        // if(on_ground_stepper == 4) {
+        //     getPosition();
+        //     if (getYaw() < MIN_ANGLE_TO_STOP_TURNING) {
+        //         set_differential_steering(30);
+        //     } else if (getYaw() > -140) {
+        //         set_differential_steering(-30);
+        //     }
+        //     on_ground_stepper = 3;
+        // }
         
         // overarching commands to get us in the correct modes once things are done in this state
-        if (millis() - off_rocks_timer > WAITING_TIME) {
-           cut_motors();
-           return isLost;
-        }
+
+
+        // if (on_ground_stepper >= 2 && millis() - off_rocks_timer > WAITING_TIME) {
+        //    cut_motors();
+        //    return isLost;
+        // }
+
         if (on_ground_stepper >= 2) {
             if(IR_present()) {
+                trialCounter++;
+            } else {
+                trialCounter = 0;
+            }
+
+            if (trialCounter >= 3) {
+                
                 return isIRReady;
             }
 
+
+
         }
         return onGround;
+    }
+
 }
 
 

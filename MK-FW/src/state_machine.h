@@ -16,18 +16,19 @@
 #define IR_LOST_MODE_OSCILLATION_TIME 1000 //millis
 
 // Modification for the post rocks motor control 
-#define POST_ROCKS_TURN_ANGLE 10
-#define POST_ROCKS_MOTOR_SPEED 50
+#define POST_ROCKS_TURN_ANGLE 0
+#define POST_ROCKS_MOTOR_SPEED 40
 
 #define RESTART_MOTORS_TIMER 1000
-#define RESTART_MOTOR_SPEED 30
+#define RESTART_MOTOR_SPEED 44
 
 // Settings for how the sensitive should be to the isOnRocks function. 
 #define NUMBER_OF_NON_ROCKS_NEEDED 2
-#define NUMBER_OF_ROCKS_NEEDED 4
+#define NUMBER_OF_ROCKS_NEEDED 3
 
 // How long will search for tape inside the IR functiom
 #define SEARCH_FOR_TAPE_TIME 2000 //millis
+#define PAST_TAPE_TIME_TO_GET_BACK_ON 2000 //millis
 
 // How long should we turn in one direction when looking for tape near the IR beacon. 
 #define TAPE_SEARCHING_MODE_MAX_ONE_DIRECTION_TURN 1000 // millis
@@ -97,4 +98,9 @@ class StateMachine {
     volatile state curr_state;
     volatile state next_state;
 
+   
+
 };
+
+
+
