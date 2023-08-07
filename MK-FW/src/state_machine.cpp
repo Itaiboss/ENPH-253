@@ -489,7 +489,7 @@ StateMachine::state StateMachine::tapeFollowState2() {
     double incline_angle;
     incline_angle = atan(sqrt(pow(tan((double) getPitch()* PI / 180.0), 2) + pow(tan( (double) getRoll()* PI / 180.0), 2))) * 180 / PI;
     //CONSOLE_LOG(LOG_TAG, "angle of incline: %i", (int) incline_angle);
-    //CONSOLE_LOG(LOG_TAG, "angle: %d", (int) incline_angle);
+    CONSOLE_LOG(LOG_TAG, "angle: %d, roll: %d, pitch: %d", (int) incline_angle, getRoll(), getPitch());
     // this block handles before you have hit the first marker. 
     if (follow_step == 0 && millis() - tape_follow_state_timer > 1000) {
         // CONSOLE_LOG(LOG_TAG, "pitch: %i", getPitch());

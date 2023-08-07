@@ -94,7 +94,7 @@ void PID( int32_t kp, int32_t ki, int32_t kd) {
         if (!diff) {
             // set_differential_steering(0);
         }
-        CONSOLE_LOG(LOG_TAG,"%d,%d,%d,%d", sense_ll,sense_l, sense_r, sense_rr);
+        //CONSOLE_LOG(LOG_TAG,"%d,%d,%d,%d", sense_ll,sense_l, sense_r, sense_rr);
         // CONSOLE_LOG(LOG_TAG,"%d",error);
         total_error += error;
         d_error = error-last_error;
