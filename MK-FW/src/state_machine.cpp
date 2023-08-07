@@ -229,7 +229,7 @@ StateMachine::state StateMachine::irState() {
 
         // }
         getPosition();
-        if (isOnRocks() && (digitalRead(TAPE_L) + digitalRead(TAPE_R)) + digitalRead(TAPE_LL) + digitalRead(TAPE_RR) >= 2) {
+        if (isOnRocks() && is_all_sensors_high(allCentralTapeSensors, 4)) {
             onRocksCounter++;
             // CONSOLE_LOG(LOG_TAG,"ON ROCKS ++");
         }
@@ -467,7 +467,8 @@ int follow_step = 0;
 uint32_t trial_counter_tape;
 bool has_slowed_down = false;
 uint32_t tape_follow_state_timer;
-
+uint32_t average_incline_angle[6] = {0};
+int incline_count = 0;
 
 StateMachine::state StateMachine::tapeFollowState2() {
 
@@ -488,20 +489,34 @@ StateMachine::state StateMachine::tapeFollowState2() {
     getPosition();
     double incline_angle;
     incline_angle = atan(sqrt(pow(tan((double) getPitch()* PI / 180.0), 2) + pow(tan( (double) getRoll()* PI / 180.0), 2))) * 180 / PI;
+    if(incline_count >= sizeof(average_incline_angle)){
+        incline_count = 0;
+    }
+    average_incline_angle[incline_count] = incline_angle;
+    incline_count++;
+
+    u_int16_t avg_incline = 0;
+
+    for(int i = 0; i < sizeof(average_incline_angle); i++){
+        avg_incline += average_incline_angle[i];
+    }
+    avg_incline = avg_incline / sizeof(average_incline_angle);
     //CONSOLE_LOG(LOG_TAG, "angle of incline: %i", (int) incline_angle);
-    CONSOLE_LOG(LOG_TAG, "angle: %d, roll: %d, pitch: %d", (int) incline_angle, getRoll(), getPitch());
+    CONSOLE_LOG(LOG_TAG, "angle: %d", (int) avg_incline);
+
+
     // this block handles before you have hit the first marker. 
     if (follow_step == 0 && millis() - tape_follow_state_timer > 1000) {
         // CONSOLE_LOG(LOG_TAG, "pitch: %i", getPitch());
 
-        if (incline_angle > 9) {
+        if (avg_incline > 9) {
             trial_counter_tape++;
         } else {
             trial_counter_tape = 0;
         }
         
         //TODO: add checks for all central sensors
-        if (trial_counter_tape >= 7) {
+        if (trial_counter_tape >= 2) {
             trial_counter_tape = 0;
             
             // CONSOLE_LOG(LOG_TAG, "on ramp");
@@ -518,7 +533,7 @@ StateMachine::state StateMachine::tapeFollowState2() {
     if (follow_step == 1 && millis()- on_ramp_time > 1500) {
         //TODO:ADD gyro check as well
 
-        if ((incline_angle < 4)) {
+        if ((avg_incline < 4)) {
             trial_counter_tape++;
         } else {
             trial_counter_tape = 0;
@@ -534,7 +549,7 @@ StateMachine::state StateMachine::tapeFollowState2() {
         // }
         
 
-        if (trial_counter_tape >= 15) {
+        if (trial_counter_tape >= 4) {
             trial_counter_tape = 0;
             follow_step = 0;
             once = false;
