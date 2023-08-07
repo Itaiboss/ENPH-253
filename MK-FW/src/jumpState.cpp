@@ -5,6 +5,7 @@
 #include <logs.h>
 #include <math.h>
 #include <ir.h>
+#include <pid.h>
 
 
 static const char* LOG_TAG = "JUMP";
@@ -13,19 +14,6 @@ static const char* LOG_TAG = "JUMP";
 
 uint32_t trialCounter = 0;
 uint32_t off_rocks_timer = 0;
-uint32_t tape_checking_sensors[] =  {
-    TAPE_R, 
-    // TAPE_E_R, 
-    TAPE_L,
-    TAPE_LL,
-    TAPE_RR,
-};
-uint32_t jump_checking_sensors[] = {
-    TAPE_LL, 
-    TAPE_RR, 
-    TAPE_L, 
-    TAPE_R
-};
 
 bool findSonar = false;
 bool once_jump = false;
@@ -56,8 +44,7 @@ JumpState perform(JumpState current_state) {
         
         // check the rightmost 3 sensor to see if the are reading white. 
         // To know we are off the tape we will have to have multiple consecutive trials where the tape goes white. 
-        if (is_all_sensors_low(tape_checking_sensors, 4)) {
-            
+        if (analogRead(TAPE_L) < BLACK_LEFT_CUTOFF && analogRead(TAPE_R) < BLACK_RIGHT_CUTOFF && !digitalRead(TAPE_E_R)) {
             trialCounter++;
         } else {
             trialCounter = 0;
@@ -75,7 +62,7 @@ JumpState perform(JumpState current_state) {
 
     if (current_state == offTape) {
 
-        CONSOLE_LOG(LOG_TAG, "r: %i rr:%i  l: %i ll:%i ", digitalRead(TAPE_R), digitalRead(TAPE_RR), digitalRead(TAPE_L), digitalRead(TAPE_LL));
+        // CONSOLE_LOG(LOG_TAG, "r: %i rr:%i  l: %i ll:%i ", digitalRead(TAPE_R), digitalRead(TAPE_RR), digitalRead(TAPE_L), digitalRead(TAPE_LL));
 
         if (!once_jump) {
             once_jump = true;
@@ -83,7 +70,7 @@ JumpState perform(JumpState current_state) {
         
         // checks to see if all 4 sensors are reading black. 
         // If they are all black for multiple consective times then we know we are now in the air. 
-        if (is_all_sensors_high(jump_checking_sensors, 4)) {
+        if (analogRead(TAPE_L) > ON_ROCKS_LEFT_READ && analogRead(TAPE_R) > ON_ROCKS_RIGHT_READ) {
 
             trialCounter++;
         } else {
@@ -159,8 +146,7 @@ JumpState perform(JumpState current_state) {
         // this block will validate that we are seeing the white part of the surface and not the rocks. 
         // (Again we wait until we have received enough consecuitive reading to move on)
         if (on_ground_stepper == 1) {
-            if (is_all_sensors_low(jump_checking_sensors, 4)) {
-
+            if (analogRead(TAPE_L) < ON_ROCKS_LEFT_READ && analogRead(TAPE_R) < ON_ROCKS_RIGHT_READ) {
                 trialCounter++;
             } else {
                 trialCounter = 0;
@@ -231,12 +217,8 @@ JumpState perform(JumpState current_state) {
             }
 
             if (trialCounter >= 3) {
-                
                 return isIRReady;
             }
-
-
-
         }
         return onGround;
     }

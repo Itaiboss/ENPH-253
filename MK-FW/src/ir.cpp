@@ -313,6 +313,10 @@ void ir_PID() {
 
   current_error = get_error(right_amplitude, left_amplitude, right_extreme_amplitude, left_extreme_ampltude);
 
+  if (current_error == 0) {
+    current_error = last_error_IR;
+  }
+
   // CONSOLE_LOG(LOG_TAG, "error is: %i", (int) current_error);
 
   uint32_t total_time = millis() - time_marker;

@@ -33,14 +33,92 @@ bool diff = 0;
 int32_t integral_max = 250;
 int32_t integral_min = 250;
 const int32_t error_table[9]={9,4,2,1,0,1,-2,-4,-9,}; 
+const double lookup[2][2] = {{5,-1}, {1,0}};
+
+const uint32_t max_error = 900;
+
+// defined constants for the min and max values
+const uint32_t left_min = 50;
+const uint32_t left_outside_cutoff = 450;
+const uint32_t right_min = 50;
+const uint32_t right_outside_cutoff = 450;
+const double right_reading_boost = 1;
+const double left_reading_boost = 1;
 
 void pidInit() {
     pinMode(TAPE_L, INPUT_PULLUP);
     pinMode(TAPE_R, INPUT_PULLUP);
     pinMode(TAPE_E_L, INPUT_PULLUP);
     pinMode(TAPE_E_R, INPUT_PULLUP);
-    pinMode(TAPE_RR, INPUT_PULLUP);
-    pinMode(TAPE_LL, INPUT_PULLUP);
+}
+
+void resetTotal() {
+    total_error = 0;
+}
+
+void analogPID(int32_t kp, int32_t kd, int32_t ki) {
+    uint32_t left_reading = analogRead(TAPE_L);
+    uint32_t right_reading = analogRead(TAPE_R);
+
+     
+    if(left_reading < left_min && right_reading < right_outside_cutoff)  // 00||
+    {
+        error = -max_error;
+
+    } 
+    else if (right_reading < right_min && left_reading) //||00
+    {
+        error = max_error;
+    } 
+    else 
+    {
+        error = right_reading_boost * right_reading - left_reading_boost * left_reading;
+    }
+
+    total_error += error;
+    d_error = error - last_error;
+    last_error = error;
+
+    uint32_t steering_value = kp * error + kd * d_error + ki * total_error;
+
+    if (steering_value >= max_control) {
+        steering_value = max_control;
+    } else if (steering_value <= min_control) {
+        steering_value = min_control;
+    }
+
+    set_raw_steering(steering_value);
+}
+
+void digitalPID(int32_t kp, int32_t ki, int32_t kd) {
+    sense_l = analogRead(TAPE_L) > BLACK_LEFT_CUTOFF;
+    sense_r = analogRead(TAPE_R) > BLACK_RIGHT_CUTOFF;
+
+    int32_t error = 0;
+    if (sense_r == 0 && sense_l == 0) {
+        if (last_l == 1) {
+            error = lookup[sense_r][sense_l]*-1;
+        } else if (last_r == 1) {
+            error = lookup[sense_r][sense_l];
+        } else {
+            error = last_error;
+        }
+    } else {
+        error = lookup[sense_r][sense_l];
+    }
+
+    total_error += error;
+    uint32_t diff_error = error - last_error;
+    uint32_t steering_value = kp * error + kd * diff_error + ki * total_error;
+
+    if (steering_value >= max_control) {
+        steering_value = max_control;
+    } else if (steering_value <= min_control) {
+        steering_value = min_control;
+    }
+
+
+    set_raw_steering(steering_value);
 }
 
 void PID( int32_t kp, int32_t ki, int32_t kd) {
