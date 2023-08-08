@@ -49,7 +49,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = TAPE_FOLLOW_1;
+    curr_state = TAPE_FOLLOW_2;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -212,7 +212,7 @@ StateMachine::state StateMachine::irState() {
         rock_step = 1;
         notOnRocksCounter = 0;
         onRocksCounter = 0;
-        set_motor_speed(95);
+        set_motor_speed(60);
         once = true;
         counter = 0;
     }
@@ -377,10 +377,10 @@ StateMachine::state StateMachine::irState() {
 
 //currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
-    analogPID(550,50,0);
+    analogPID(50,1,0);
     if(!once){
         resetTotal();
-        set_motor_speed(95);
+        set_motor_speed(59);
         once = true;
     }
     return TAPE_FOLLOW_1;
@@ -482,9 +482,9 @@ StateMachine::state StateMachine::tapeFollowState2() {
         tape_follow_state_timer = millis();
     }
     if (follow_step < 1){
-        digitalPID(KP,KI,KD);
+        analogPID(50,1,0);
     } else {
-        digitalPID(15,0,0);
+        analogPID(100,0,0);
     }
     getPosition();
     double incline_angle;

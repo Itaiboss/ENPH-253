@@ -38,10 +38,10 @@ const double lookup[2][2] = {{5,-1}, {1,0}};
 const uint32_t max_error = 900;
 
 // defined constants for the min and max values
-const uint32_t to_white_left = 100;
-const uint32_t from_white_left = 150;
-const uint32_t to_white_right = 95;
-const uint32_t from_white_right = 140;
+const uint32_t to_white_left = 340;
+const uint32_t from_white_left = 380;
+const uint32_t to_white_right = 220;
+const uint32_t from_white_right = 260;
 const double right_reading_boost = 1;
 const double left_reading_boost = 1;
 
@@ -68,27 +68,50 @@ void analogPID(double kp, double kd, double ki) {
     uint32_t left_min = left_white ? from_white_left : to_white_left; 
     uint32_t right_min = right_white ? from_white_right : to_white_right;
 
+    // if (left_white) {
+    //     if (left_reading >= 500) {
+    //         left_reading = 0;
+    //     }
+    // }
+
+    // if (right_white) {
+    //     if (right_reading >= 500) {
+    //         right_reading = 0;
+    //     }
+    // }
+
     
 
     double total_readings = left_reading + right_reading - left_min - right_min;
 
     if (left_reading < left_min && right_reading < right_min) {
         error = last_error;
+        left_white = true;
+        right_white = true;
 
     }
     else if(left_reading < left_min)  // 00||
     {
         error = -1;
+        left_white = true;
+        right_white = false;
     } 
     else if (right_reading < right_min)  //||00
     {
         error = 1;
+        left_white = false;
+        right_white = true;
         // maybe try 1.5 here. 
     } 
     else 
     {
         error = (-right_reading_boost * (right_reading - right_min) + left_reading_boost * (left_reading - left_min)) / total_readings;
+        left_white = false;
+        right_white = false;
     }
+
+
+    
 
    
 
@@ -110,9 +133,9 @@ void analogPID(double kp, double kd, double ki) {
 
     if (error == 1) {
         pwm_start(LEFT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
-        pwm_start(RIGHT_MOTOR_FORWARD, 1000, getMotorSpeed() / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3800, RESOLUTION_12B_COMPARE_FORMAT);
     } else if (error == -1) {
-        pwm_start(LEFT_MOTOR_FORWARD, 1000, getMotorSpeed() / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(LEFT_MOTOR_FORWARD, 1000, 3800, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(RIGHT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
     } else {
         set_motor_speed(getMotorSpeed());

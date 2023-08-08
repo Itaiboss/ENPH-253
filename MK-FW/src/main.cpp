@@ -102,7 +102,7 @@ void loop() {
 
 
 
-  // state_machine.determineState();
+  state_machine.determineState();
 
   //pwm_start(MOTOR_1A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
   //pwm_start(MOTOR_2A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
