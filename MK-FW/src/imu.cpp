@@ -61,45 +61,6 @@ bool isUpwardsAcceleration() {
 }
 
 /**
- * @brief  Determines if the object is on the rocks. It is important to
- * @attention This function uses the last values saved when calling `getPosition()`. 
- * @note   Assumes that roll and pitch are not the rotation about the vertical axis. 
- * @retval True if the robot is on the rocks, false otherwise. 
- */
-bool isOnRocks(){
-    int16_t diffRoll, diffPitch, diffYaw;
-    diffRoll = abs(roll - lastRoll);
-    diffPitch = abs(pitch - lastPitch);
-    diffYaw = abs(yaw - lastYaw);
-    if(diffPitch >= threshold){// || diffYaw >= threshold){
-        return true;
-    }
-    return false;
-}
-
-/**
- * @brief  stores the current position to be the zero value. 
- * @attention   You need not call getPosition() before zeroing the values. 
- * @retval None
- */
-void storePosition(){
-    int32_t roll_total;
-    int32_t yaw_total;
-    int32_t pitch_total;
-
-    for (int i = 0; i < 6; i++) {
-        getPosition();
-        // roll_total = getRoll();
-        // yaw_total = getYaw();
-        // pitch_total = getPitch();
-    }
-
-    offsetRoll = roll_total / 6;
-    offsetPitch = pitch_total / 6;
-    offsetYaw = yaw_total / 6;
-}
-
-/**
  * @brief  Converts the given angle between -360 and 360 to the domain of -180 and 180. 
  * @note   
  * @param  angle: The angle you would like to convert. 
@@ -117,6 +78,24 @@ int16_t convertToDomain(int16_t angle) {
     return angle;
 }
 
+
+/**
+ * @brief  Determines if the object is on the rocks. It is important to
+ * @attention This function uses the last values saved when calling `getPosition()`. 
+ * @note   Assumes that roll and pitch are not the rotation about the vertical axis. 
+ * @retval True if the robot is on the rocks, false otherwise. 
+ */
+bool isOnRocks(){
+    int16_t diffRoll, diffPitch, diffYaw;
+    diffRoll = abs(roll - lastRoll);
+    diffPitch = abs(pitch - lastPitch);
+    diffYaw = abs(yaw - lastYaw);
+    if(diffPitch >= threshold){// || diffYaw >= threshold){
+        return true;
+    }
+    return false;
+}
+
 int16_t getRoll(){
     return convertToDomain(roll - offsetRoll);
 }
@@ -128,5 +107,30 @@ int16_t getPitch(){
 int16_t getYaw(){
     return convertToDomain(yaw - offsetYaw);
 }
+
+/**
+ * @brief  stores the current position to be the zero value. 
+ * @attention   You need not call getPosition() before zeroing the values. 
+ * @retval None
+ */
+void storePosition(){
+    int32_t roll_total = 0;
+    int32_t yaw_total = 0;
+    int32_t pitch_total = 0;
+
+    for (int i = 0; i < 6; i++) {
+        getPosition();
+        roll_total += getRoll();
+        yaw_total += getYaw();
+        pitch_total += getPitch();
+    }
+
+    offsetRoll = roll_total / 6;
+    offsetPitch = pitch_total / 6;
+    offsetYaw = yaw_total / 6;
+}
+
+
+
 
 

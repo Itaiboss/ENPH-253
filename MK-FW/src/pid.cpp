@@ -23,10 +23,10 @@ uint32_t last_r;
 uint32_t last_l;
 uint32_t time_ms = 8;
 uint32_t last_time = 0;
-double error = 0;
-double total_error;
-double last_error;
-double d_error;
+int32_t error = 0;
+int32_t total_error;
+int32_t last_error;
+int32_t d_error;
 int32_t max_control = LEFT_MAX;
 int32_t min_control = RIGHT_MAX;
 bool diff = 0;
@@ -38,115 +38,159 @@ const double lookup[2][2] = {{5,-1}, {1,0}};
 const uint32_t max_error = 900;
 
 // defined constants for the min and max values
-const uint32_t to_white_left = 340;
-const uint32_t from_white_left = 380;
-const uint32_t to_white_right = 220;
-const uint32_t from_white_right = 260;
+const uint32_t to_white_left = 370;
+const uint32_t from_white_left = 370;
+const uint32_t to_white_right = 370;
+const uint32_t from_white_right = 370;
 const double right_reading_boost = 1;
 const double left_reading_boost = 1;
 
-bool right_white = true;
-bool left_white = true;
+bool on_white = true;
+uint32_t cursor = 0;
+uint32_t control_cursor = 0;
+int32_t left_rail_counter = 0;
+int32_t right_rail_counter = 0;
+int32_t rail_setting = 0;
 
 void pidInit() {
     pinMode(TAPE_L, INPUT);
     pinMode(TAPE_R, INPUT);
     pinMode(TAPE_E_L, INPUT_PULLUP);
     pinMode(TAPE_E_R, INPUT_PULLUP);
-    right_white = true;
-    left_white = true;
+    on_white = false;
+    cursor = 0;
+    control_cursor = 0;
+    left_rail_counter = 0;
+    right_rail_counter = 0;
+    rail_setting = 0;
 }
+
+
 
 void resetTotal() {
     total_error = 0;
+    cursor = 0;
+    on_white = false;
+    control_cursor = 0;
+    left_rail_counter = 0;
+    right_rail_counter = 0;
+    rail_setting = 0;
+    
 }
+
+uint32_t left_history[3] = {10000, 10000, 10000};
+uint32_t right_history[3] = {10000, 10000, 10000};
+
+uint32_t control_history[3] = {0};
+
+
+
+
+
+
 
 void analogPID(double kp, double kd, double ki) {
     uint32_t left_reading = analogRead(TAPE_L);
     uint32_t right_reading = analogRead(TAPE_R);
 
-    uint32_t left_min = left_white ? from_white_left : to_white_left; 
-    uint32_t right_min = right_white ? from_white_right : to_white_right;
+    // left_history[cursor] = left_reading;
+    // right_history[cursor] = right_reading;
+    // cursor++;
 
-    // if (left_white) {
-    //     if (left_reading >= 500) {
-    //         left_reading = 0;
-    //     }
+    // if (cursor == 3) {
+    //     cursor = 0;
     // }
 
-    // if (right_white) {
-    //     if (right_reading >= 500) {
-    //         right_reading = 0;
-    //     }
+    // uint32_t left_average = 0;
+    // uint32_t right_average = 0;
+
+    // for (int i = 0; i < 3; i++) {
+    //     left_average += left_history[i];
+    //     right_average += right_history[i];
     // }
 
-    
+    // left_average /= 3;
+    // right_average /= 3;
 
-    double total_readings = left_reading + right_reading - left_min - right_min;
+    // uint32_t left_min = on_white ? from_white_left : to_white_left; 
+    // uint32_t right_min = on_white ? from_white_right : to_white_right;
 
-    if (left_reading < left_min && right_reading < right_min) {
-        error = last_error;
-        left_white = true;
-        right_white = true;
+    if (left_reading + right_reading < 780) {
 
+        if (last_error > 0) {
+            left_rail_counter++;
+            right_rail_counter = 0;
+            error = 400;
+        } else if (last_error < 0){
+            right_rail_counter++;
+            left_rail_counter = 0;
+            error = -400;
+        }
+        
+        if (left_rail_counter >= 3) {
+            rail_setting = 1;
+
+        } else if (right_rail_counter >= 3) {
+            rail_setting = -1;
+        }
+
+        on_white = true;
+
+    } else {
+        left_rail_counter = 0;
+        right_rail_counter = 0;
+        error = (-right_reading_boost * (right_reading) + left_reading_boost * (left_reading));
+        if (rail_setting == 1) {
+            if (error <= 0) {
+                error = 400;
+
+            }
+            rail_setting = 0;
+            
+
+        } else if (rail_setting == -1) {
+            if (error >= 0) {
+                error = -400;
+            } 
+            rail_setting = 0;
+            
+        } 
+        
+        on_white = false;
     }
-    else if(left_reading < left_min)  // 00||
-    {
-        error = -1;
-        left_white = true;
-        right_white = false;
-    } 
-    else if (right_reading < right_min)  //||00
-    {
-        error = 1;
-        left_white = false;
-        right_white = true;
-        // maybe try 1.5 here. 
-    } 
-    else 
-    {
-        error = (-right_reading_boost * (right_reading - right_min) + left_reading_boost * (left_reading - left_min)) / total_readings;
-        left_white = false;
-        right_white = false;
-    }
-
-
-    
-
-   
-
-
 
     total_error += error;
     d_error = error - last_error;
     last_error = error;
 
     uint32_t steering_value = MID_POINT + kp * error + kd * d_error + ki * total_error;
+    // control_history[control_cursor] = error;
+    // control_cursor++;
 
-    if (steering_value >= max_control) {
-        steering_value = max_control;
-    } else if (steering_value <= min_control) {
+    // if (control_cursor >= 3) {
+    //     control_cursor = 0;
+    // }
+
+    // if (error >= 200) {
+    //     pwm_start(LEFT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
+    //     pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3600, RESOLUTION_12B_COMPARE_FORMAT);
+
+    // } else if (error <= -200) {
+    //     pwm_start(LEFT_MOTOR_FORWARD, 1000, 3600, RESOLUTION_12B_COMPARE_FORMAT);
+    //     pwm_start(RIGHT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
+    // } else {
+    //     set_motor_speed(getMotorSpeed());
+    // }
+
+    if (steering_value <= min_control) {
         steering_value = min_control;
-    } 
-
-    
-
-    if (error == 1) {
-        pwm_start(LEFT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
-        pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3800, RESOLUTION_12B_COMPARE_FORMAT);
-    } else if (error == -1) {
-        pwm_start(LEFT_MOTOR_FORWARD, 1000, 3800, RESOLUTION_12B_COMPARE_FORMAT);
-        pwm_start(RIGHT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
-    } else {
-        set_motor_speed(getMotorSpeed());
+    } else if (steering_value >= max_control) {
+        steering_value = max_control;
     }
 
     set_raw_steering(steering_value);
-    
+    //CONSOLE_LOG(LOG_TAG, "%i, %i, %i, %i, %i", steering_value, (int) error, left_reading, right_reading, on_white);
 
-    CONSOLE_LOG(LOG_TAG, "%i, [%i], [%i, %i]", steering_value, (int) error * 100, left_reading, right_reading);
-
-    
 }
 
 void digitalPID(int32_t kp, int32_t ki, int32_t kd) {
@@ -176,10 +220,18 @@ void digitalPID(int32_t kp, int32_t ki, int32_t kd) {
     uint32_t diff_error = error - last_error;
     uint32_t steering_value = MID_POINT + kp * error + kd * diff_error + ki * total_error;
 
+    last_error = error;
+
     if (steering_value >= max_control) {
         steering_value = max_control;
+        pwm_start(LEFT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3800, RESOLUTION_12B_COMPARE_FORMAT);
     } else if (steering_value <= min_control) {
         steering_value = min_control;
+        pwm_start(LEFT_MOTOR_FORWARD, 1000, 3800, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(RIGHT_MOTOR_FORWARD, 1000, 0, RESOLUTION_12B_COMPARE_FORMAT);
+    } else {
+        set_motor_speed(getMotorSpeed());
     }
 
     CONSOLE_LOG(LOG_TAG, "%i, [%i, %i], [%i, %i]", steering_value, sense_l, sense_r, left_reading, right_reading);

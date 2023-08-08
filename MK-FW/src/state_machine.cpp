@@ -49,7 +49,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = TAPE_FOLLOW_2;
+    curr_state = TAPE_FOLLOW_1;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -377,7 +377,7 @@ StateMachine::state StateMachine::irState() {
 
 //currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
-    analogPID(50,1,0);
+    analogPID(0.5,0,0);
     if(!once){
         resetTotal();
         set_motor_speed(59);
