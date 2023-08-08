@@ -83,10 +83,20 @@ bool isOnRocks(){
  * @retval None
  */
 void storePosition(){
-    getPosition();
-    offsetRoll = roll;
-    offsetPitch = pitch;
-    offsetYaw = yaw;
+    int32_t roll_total;
+    int32_t yaw_total;
+    int32_t pitch_total;
+
+    for (int i = 0; i < 6; i++) {
+        getPosition();
+        // roll_total = getRoll();
+        // yaw_total = getYaw();
+        // pitch_total = getPitch();
+    }
+
+    offsetRoll = roll_total / 6;
+    offsetPitch = pitch_total / 6;
+    offsetYaw = yaw_total / 6;
 }
 
 /**

@@ -46,7 +46,8 @@ void setup() {
   pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
   imuInit();
   storePosition();
-  // set_motor_speed(100);
+  // set_motor_speed(75);
+  // set_differential_steering(50);
   centre_steering();
   // pwm_start(LEFT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
   // pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3000, RESOLUTION_12B_COMPARE_FORMAT);
@@ -65,12 +66,19 @@ bool once_main = false;
 
 void loop() {
 
+  // centre_steering();
+
+
+
+
   
   
   // set_raw_steering(25);
   // set_motor_speed( 85);
 
   // ir_PID();
+
+  // CONSOLE_LOG(LOG_TAG, "[%i, %i]", analogRead(TAPE_L), analogRead(TAPE_R));
   // if (!once_main) {
 
     // if (millis() - start_time_main > 400) {
@@ -89,7 +97,12 @@ void loop() {
 
 
 
-  state_machine.determineState();
+
+
+
+
+
+  // state_machine.determineState();
 
   //pwm_start(MOTOR_1A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
   //pwm_start(MOTOR_2A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);

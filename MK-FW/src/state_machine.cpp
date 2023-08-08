@@ -49,7 +49,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = TAPE_FOLLOW_2;
+    curr_state = TAPE_FOLLOW_1;
     next_state = UNKNOWN;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
 }
@@ -320,7 +320,7 @@ StateMachine::state StateMachine::irState() {
 
     if (rock_step == 4) {
 
-        if (is_all_sensors_low(allCentralTapeSensors, 4)) {
+        if (analogRead(TAPE_L) < BLACK_LEFT_CUTOFF && analogRead(TAPE_R) < BLACK_RIGHT_CUTOFF) {
             rock_step = 5;
         }
 
@@ -333,7 +333,7 @@ StateMachine::state StateMachine::irState() {
     }
 
     if (rock_step == 6) {
-        if (digitalRead(TAPE_L) + digitalRead(TAPE_LL) + digitalRead(TAPE_R) + digitalRead(TAPE_RR) >= 2) {
+        if (analogRead(TAPE_L) > BLACK_LEFT_CUTOFF && analogRead(TAPE_R) > BLACK_RIGHT_CUTOFF) {
             have_seen_tape_once_timer = millis();
             rock_step = 7;
         }
@@ -342,7 +342,7 @@ StateMachine::state StateMachine::irState() {
     
 
     if (rock_step == 7 && millis() - have_seen_tape_once_timer > 350) {
-        if (is_all_sensors_low(allCentralTapeSensors, 4)) {
+        if (analogRead(TAPE_L) < BLACK_LEFT_CUTOFF && analogRead(TAPE_R) < BLACK_RIGHT_CUTOFF) {
             counter++;
         }
 
@@ -377,10 +377,10 @@ StateMachine::state StateMachine::irState() {
 
 //currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
-    digitalPID(KP,KI,KD);
+    analogPID(550,50,0);
     if(!once){
         resetTotal();
-        set_motor_speed(60);
+        set_motor_speed(95);
         once = true;
     }
     return TAPE_FOLLOW_1;

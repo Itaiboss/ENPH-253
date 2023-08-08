@@ -1,6 +1,9 @@
 #include <control.h>
 #include <Wire.h>
 
+
+volatile double motor_speed = 0;
+
 /**
  * @brief  Sets the steering for the front wheels. 
  * @note   
@@ -31,7 +34,11 @@ void set_raw_steering(uint32_t pwm_value) {
     pwm_start(SERVO, 50, pwm_value, RESOLUTION_12B_COMPARE_FORMAT);
 }
 
-volatile double motorSpeed = 0;
+double getMotorSpeed() {
+    return motor_speed;
+}
+
+
 /**
  * @brief sets the motor speed to the duty cycle of the percentage of the double.
  * *  Negative values correspond the backwards direction and positve the the forward direction. 
@@ -43,8 +50,8 @@ void set_motor_speed(int32_t speed) {
     if (speed > 0) {
         pwm_start(LEFT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(RIGHT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
-        pwm_start(LEFT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(RIGHT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+        pwm_start(LEFT_MOTOR_FORWARD, MOTOR_CONTROL_FREQUENCY, (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
     } else if (speed < 0) {
         pwm_start(LEFT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, - (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
         pwm_start(RIGHT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, - (double) speed / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
@@ -53,7 +60,7 @@ void set_motor_speed(int32_t speed) {
     } else {
         cut_motors();
     }
-    motorSpeed = speed;
+    motor_speed = speed;
 }
 
 void cut_servo() {
@@ -72,7 +79,7 @@ void cut_motors() {
     pwm_start(LEFT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
     pwm_start(RIGHT_MOTOR_BACKWARD, MOTOR_CONTROL_FREQUENCY, 0, RESOLUTION_12B_COMPARE_FORMAT);
 
-    motorSpeed = 0;
+    motor_speed = 0;
 }
 
 /**
@@ -83,16 +90,16 @@ void cut_motors() {
  */
 void set_differential_steering(int32_t difference) {
     // first double checks to make sure we are moving forward at this moment. 
-    if (motorSpeed > 0) {
+    if (motor_speed > 0) {
         if (difference > 0) {
-            pwm_start(LEFT_MOTOR_FORWARD, 1000, motorSpeed - (double) difference / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
-            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(LEFT_MOTOR_FORWARD, 1000, motor_speed - (double) difference / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motor_speed, RESOLUTION_12B_COMPARE_FORMAT);
         } else if (difference < 0) {
-            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motorSpeed + (double) difference / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
-            pwm_start(LEFT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motor_speed + (double) difference / 100 * 4098, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(LEFT_MOTOR_FORWARD, 1000, motor_speed, RESOLUTION_12B_COMPARE_FORMAT);
         } else {
-            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
-            pwm_start(LEFT_MOTOR_FORWARD, 1000, motorSpeed, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(RIGHT_MOTOR_FORWARD, 1000, motor_speed, RESOLUTION_12B_COMPARE_FORMAT);
+            pwm_start(LEFT_MOTOR_FORWARD, 1000, motor_speed, RESOLUTION_12B_COMPARE_FORMAT);
 
         }
 
@@ -111,5 +118,5 @@ void spin_in_circle(bool right) {
 }
 
 void centre_steering() {
-    set_steering(0);
+    pwm_start(SERVO, 50, MID_POINT, RESOLUTION_12B_COMPARE_FORMAT);
 }
