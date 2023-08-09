@@ -402,10 +402,10 @@ StateMachine::state StateMachine::irState() {
 
 //currently is not used. Usefull in debbugging however. 
 StateMachine::state StateMachine::tapeFollowState1() {
-    analogPID(0.35,0,0, 650);
+    analogPID(0.35,0,0,270);
     if(!once){
         resetTotal();
-        set_motor_speed(59);
+        set_motor_speed(65);
         once = true;
     }
     return TAPE_FOLLOW_1;
@@ -494,24 +494,41 @@ uint32_t tape_follow_state_timer;
 uint32_t average_incline_angle[6] = {0, 0, 0, 0, 0, 0};
 int incline_count = 0;
 uint32_t avg_incline = 0;
+uint32_t time_array[100];
+uint32_t index_tape_follow_2 = 0;
 
 StateMachine::state StateMachine::tapeFollowState2() {
 
     if(!once) {
         resetTotal();
         follow_step = 0;
-        set_motor_speed(60);
+        set_motor_speed(65);
         //stores the position so that we can know when we are on the ramp. 
         once = true;
         trial_counter_tape = 0;
         tape_follow_state_timer = millis();
         pos = true; 
+        index_tape_follow_2 = 0;
     }
     if (follow_step < 1){
-        analogPID(.5,0,0, 400);
+        analogPID(.35,0,0, 350);
     } else {
-        analogPID(.34,0.0,0, 350);
+        analogPID(.35,0.0,0, 350);
     }
+
+    
+
+    // CONSOLE_LOG(LOG_TAG, "%i", avg_incline);
+
+    if(millis() - tape_follow_state_timer > 300 && pos) {
+        storePosition();
+        pos = false;
+    }
+
+
+    // this block handles before you have hit the first marker. 
+    if (follow_step == 0 && millis() - tape_follow_state_timer > 1000) {
+        // CONSOLE_LOG(LOG_TAG, "pitch: %i", getPitch());
 
     getPosition();
     double incline_angle;
@@ -530,18 +547,6 @@ StateMachine::state StateMachine::tapeFollowState2() {
     }
     avg_incline /= 6;
 
-    // CONSOLE_LOG(LOG_TAG, "%i", avg_incline);
-
-    if(millis() - tape_follow_state_timer > 300 && pos) {
-        storePosition();
-        pos = false;
-    }
-
-
-    // this block handles before you have hit the first marker. 
-    if (follow_step == 0 && millis() - tape_follow_state_timer > 1000) {
-        // CONSOLE_LOG(LOG_TAG, "pitch: %i", getPitch());
-
         if (avg_incline > 7) {
             trial_counter_tape++;
 
@@ -551,11 +556,9 @@ StateMachine::state StateMachine::tapeFollowState2() {
         }
         
         //TODO: add checks for all central sensors
-        if (trial_counter_tape >= 10) {
+        if (trial_counter_tape >= 8) {
             trial_counter_tape = 0;
-
-            resetTotal();
-            
+            // resetTotal();
             // CONSOLE_LOG(LOG_TAG, "on ramp");
             set_motor_speed(81); //maybe needs extra error correction to make sure the others are still on the tape. 
             on_ramp_time = millis();
@@ -570,7 +573,24 @@ StateMachine::state StateMachine::tapeFollowState2() {
     if (follow_step == 1 && millis() - on_ramp_time > 1750) {
         //TODO:ADD gyro check as well
 
-        if ((avg_incline < 1)) {
+        getPosition();
+        double incline_angle;
+        
+        incline_angle = atan(sqrt(pow(tan((double) getPitch()* PI / 180.0), 2) + pow(tan( (double) getRoll()* PI / 180.0), 2))) * 180 / PI;
+        // CONSOLE_LOG(LOG_TAG, "%i, %i, %i, %i", getPitch(), getRoll(), getYaw(), (int) incline_angle);
+
+        if(incline_count >= 6){
+            incline_count = 0;
+        }
+        average_incline_angle[incline_count] = incline_angle;
+        incline_count++;
+
+        for(int i = 0; i < 6; i++){
+            avg_incline += average_incline_angle[i];
+        }
+        avg_incline /= 6;
+
+        if ((avg_incline < 3)) {
             trial_counter_tape++;
         } else {
             trial_counter_tape = 0;
@@ -585,6 +605,17 @@ StateMachine::state StateMachine::tapeFollowState2() {
             return JUMP;
         }
     }
+
+    // time_array[index_tape_follow_2] = millis() - tape_follow_state_timer;
+
+    // index_tape_follow_2++;
+    // if (index_tape_follow_2 >= 100) {
+    //     for (int i = 0; i < 100; i++) {
+    //         CONSOLE_LOG(LOG_TAG, "%i", time_array[i]);
+    //     }
+    //     index_tape_follow_2 = 0;
+    // }
+
     return TAPE_FOLLOW_2;
 }
 

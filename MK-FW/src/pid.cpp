@@ -235,7 +235,7 @@ void digitalPID(int32_t kp, int32_t ki, int32_t kd) {
         set_motor_speed(getMotorSpeed());
     }
 
-    CONSOLE_LOG(LOG_TAG, "%i, [%i, %i], [%i, %i]", steering_value, sense_l, sense_r, left_reading, right_reading);
+    // CONSOLE_LOG(LOG_TAG, "%i, [%i, %i], [%i, %i]", steering_value, sense_l, sense_r, left_reading, right_reading);
 
 
     set_raw_steering(steering_value);

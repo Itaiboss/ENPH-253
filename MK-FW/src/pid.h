@@ -9,10 +9,10 @@
 #define KI 0
 #define KD 0
 
-#define BLACK_LEFT_CUTOFF 350
-#define BLACK_RIGHT_CUTOFF 350
-#define ON_ROCKS_LEFT_READ 350
-#define ON_ROCKS_RIGHT_READ 350
+#define BLACK_LEFT_CUTOFF 250
+#define BLACK_RIGHT_CUTOFF 250
+#define ON_ROCKS_LEFT_READ 400
+#define ON_ROCKS_RIGHT_READ 400
 
 
 void resetTotal();

@@ -46,7 +46,7 @@ void setup() {
   pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
   imuInit();
   storePosition();
-  set_motor_speed(65);
+  set_motor_speed(75);
 
   centre_steering();
   // pwm_start(LEFT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
@@ -85,10 +85,7 @@ void loop() {
 
 
 
-  // if (millis() - start_time_main > 2000) {
-  //   cut_motors();
-  //   centre_steering();
-  // }
+    //centre_steering();
 
   state_machine.determineState();
 
