@@ -68,11 +68,6 @@ void loop() {
 
   // centre_steering();
 
-
-
-
-  
-  
   // set_raw_steering(25);
   // set_motor_speed( 85);
 
@@ -95,7 +90,7 @@ void loop() {
   //   centre_steering();
   // }
 
-  // state_machine.determineState();
+  state_machine.determineState();
 
   //pwm_start(MOTOR_1A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
   //pwm_start(MOTOR_2A, 1000, 2000, RESOLUTION_12B_COMPARE_FORMAT);
@@ -111,5 +106,5 @@ void loop() {
 
   // ir_PID();
 
-  analogPID(0.25, 0, 0);
+  // analogPID(0.25, 0, 0);
 }

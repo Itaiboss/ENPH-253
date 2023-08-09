@@ -44,7 +44,7 @@ JumpState perform(JumpState current_state) {
         
         // check the rightmost 3 sensor to see if the are reading white. 
         // To know we are off the tape we will have to have multiple consecutive trials where the tape goes white. 
-        if (analogRead(TAPE_L) < BLACK_LEFT_CUTOFF && analogRead(TAPE_R) < BLACK_RIGHT_CUTOFF && !digitalRead(TAPE_E_R)) {
+        if (analogRead(TAPE_L) < BLACK_LEFT_CUTOFF && analogRead(TAPE_R) < BLACK_RIGHT_CUTOFF) {
             trialCounter++;
         } else {
             trialCounter = 0;

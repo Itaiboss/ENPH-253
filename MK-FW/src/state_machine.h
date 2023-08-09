@@ -8,19 +8,19 @@
 
 // Settings for the start State
 #define START_SPEED 75
-#define START_TURNING_ANGLE 30
-#define START_GYRO_CUTOFF 60
+#define START_TURNING_ANGLE 50
+#define START_GYRO_CUTOFF 80
 #define TIME_UNTIL_LOST_MODE 5000 // millis
 
 // Modifications for the IR lost mode 
 #define IR_LOST_MODE_OSCILLATION_TIME 1000 //millis
 
 // Modification for the post rocks motor control 
-#define POST_ROCKS_TURN_ANGLE 0
-#define POST_ROCKS_MOTOR_SPEED 40
+#define POST_ROCKS_TURN_ANGLE 9
+#define POST_ROCKS_MOTOR_SPEED 50
 
-#define RESTART_MOTORS_TIMER 1000
-#define RESTART_MOTOR_SPEED 44
+#define RESTART_MOTORS_TIMER 500
+#define RESTART_MOTOR_SPEED 46
 
 // Settings for how the sensitive should be to the isOnRocks function. 
 #define NUMBER_OF_NON_ROCKS_NEEDED 2

@@ -3,6 +3,7 @@
  * @brief     contains algorithm for PID control
  *
  */
+//josh was here
 
 #include <pid.h>
 #include <stdint.h>
@@ -89,7 +90,7 @@ uint32_t control_history[3] = {0};
 
 
 
-void analogPID(double kp, double kd, double ki) {
+void analogPID(double kp, double kd, double ki, uint32_t white_threshold) {
     uint32_t left_reading = analogRead(TAPE_L);
     uint32_t right_reading = analogRead(TAPE_R);
 
@@ -115,7 +116,7 @@ void analogPID(double kp, double kd, double ki) {
     // uint32_t left_min = on_white ? from_white_left : to_white_left; 
     // uint32_t right_min = on_white ? from_white_right : to_white_right;
 
-    if (left_reading + right_reading < 780) {
+    if (left_reading + right_reading < white_threshold) {
 
         if (last_error > 0) {
             left_rail_counter++;
@@ -189,7 +190,7 @@ void analogPID(double kp, double kd, double ki) {
     }
 
     set_raw_steering(steering_value);
-    //CONSOLE_LOG(LOG_TAG, "%i, %i, %i, %i, %i", steering_value, (int) error, left_reading, right_reading, on_white);
+    // CONSOLE_LOG(LOG_TAG, "%i, %i, %i, %i, %i", steering_value, (int) error, left_reading, right_reading, on_white);
 
 }
 
@@ -326,6 +327,7 @@ bool tapeIsPresent() {
 //servo max left = 2% duty cycle 82
 
 //steering bound 100-400
+//chicken
 
 
 

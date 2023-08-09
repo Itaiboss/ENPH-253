@@ -17,7 +17,11 @@
 
 void ir_init();
 
+bool noIRFound();
+
 bool IR_present();
+
+void resetCounter();
 
 void ir_PID();
 

@@ -6,12 +6,15 @@
 #include <Adafruit_Sensor.h>
 #include <MPU6050_light.h>
 #include <pins.h>
+#include <logs.h>
  
 MPU6050 mpu(Wire);
 int16_t roll, pitch, yaw;
 int16_t lastRoll, lastPitch, lastYaw;
 int16_t offsetRoll, offsetPitch, offsetYaw = 0;
 int16_t threshold = 3; //degrees, change of angle that happens when car is on rocks
+
+static const char* LOG_TAG = "IMU";
 
 /**
  * @brief  Initilizes the imu by calculating the offsets. 
@@ -114,20 +117,29 @@ int16_t getYaw(){
  * @retval None
  */
 void storePosition(){
-    int32_t roll_total = 0;
-    int32_t yaw_total = 0;
-    int32_t pitch_total = 0;
+    // int32_t roll_total = 0;
+    // int32_t yaw_total = 0;
+    // int32_t pitch_total = 0;
 
-    for (int i = 0; i < 6; i++) {
-        getPosition();
-        roll_total += getRoll();
-        yaw_total += getYaw();
-        pitch_total += getPitch();
-    }
+    
 
-    offsetRoll = roll_total / 6;
-    offsetPitch = pitch_total / 6;
-    offsetYaw = yaw_total / 6;
+    // for (int i = 0; i < 6; i++) {
+    //     mpu.update();
+    //     roll_total += mpu.getAngleX();
+    //     yaw_total += mpu.getAngleZ();
+    //     pitch_total += mpu.getAngleY();
+        
+    // }
+
+    // // CONSOLE_LOG(LOG_TAG, "%i, %i, %i", roll_total, yaw_total, pitch_total);
+
+    // offsetRoll = roll_total / 6;
+    // offsetPitch = pitch_total / 6;
+    // offsetYaw = yaw_total / 6;
+
+    offsetPitch = 0;
+    offsetRoll = 0;
+    offsetYaw = 0;
 }
 
 

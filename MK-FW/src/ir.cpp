@@ -61,6 +61,7 @@ double outsideRightWeight = 5.5;
 double outsideLeftWeight = 5.5;
 
 uint32_t frequency_check_frequency = 0;
+uint32_t low_readings_counter = 0;
 
 void ir_init() {
   pinMode(IR_R, INPUT);
@@ -70,8 +71,19 @@ void ir_init() {
   CONSOLE_LOG(LOG_TAG, "Initializing IR");
   does_need_frequency_check = true;
   trials_since_last_check = 0;
+  low_readings_counter = 0;
   // gives the default values for 
   
+}
+
+
+
+void resetCounter() {
+  low_readings_counter = 0;
+}
+
+bool noIRFound() {
+  return low_readings_counter > 5;
 }
 
 void updateMinAndMax(int l, int r, int l_e, int r_e) {
@@ -304,6 +316,12 @@ void ir_PID() {
     prop_coef = close_prop_coef;
   } else {
     prop_coef = far_prop_coef;
+  }
+
+  if (right_amplitude + right_extreme_amplitude + left_amplitude + left_extreme_ampltude == 0) {
+    low_readings_counter++;
+  } else {
+    low_readings_counter = 0;
   }
 
   

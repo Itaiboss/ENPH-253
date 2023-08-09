@@ -7,7 +7,7 @@
 #define NUM_OF_TRIALS 5
 
 // a set of controls to manage the prejump seqeunce
-#define PREJUMP_STEERING_ANGLE 20
+#define PREJUMP_STEERING_ANGLE 30
 #define PREJUMP_MOTOR_SPEED 100
 
 // a set of controls for the on rocks landed sequence. 

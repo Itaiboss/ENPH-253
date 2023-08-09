@@ -9,15 +9,15 @@
 #define KI 0
 #define KD 0
 
-#define BLACK_LEFT_CUTOFF 500
-#define BLACK_RIGHT_CUTOFF 500
-#define ON_ROCKS_LEFT_READ 300
-#define ON_ROCKS_RIGHT_READ 300
+#define BLACK_LEFT_CUTOFF 350
+#define BLACK_RIGHT_CUTOFF 350
+#define ON_ROCKS_LEFT_READ 350
+#define ON_ROCKS_RIGHT_READ 350
 
 
 void resetTotal();
 void digitalPID(int32_t kp, int32_t ki, int32_t kd);
-void analogPID(double kp, double ki, double kd);
+void analogPID(double kp, double ki, double kd, uint32_t white_threshold);
 void pidInit();
 void PID(int32_t kp, int32_t ki, int32_t kd);
 bool tapeIsPresent();
