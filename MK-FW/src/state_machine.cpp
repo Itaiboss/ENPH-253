@@ -52,7 +52,7 @@ StateMachine::~StateMachine() {
 
 void StateMachine::init() {
     prev_state = UNKNOWN;
-    curr_state = TAPE_FOLLOW_2;
+    curr_state = START;
     next_state = UNKNOWN;
     is_from_start = true;
     CONSOLE_LOG(LOG_TAG, "Initialized the state machine");
@@ -244,8 +244,8 @@ StateMachine::state StateMachine::irState() {
         if (millis() - on_rocks_timer > RESTART_MOTORS_TIMER) {
             set_motor_speed(POST_ROCKS_MOTOR_SPEED);
             set_steering(POST_ROCKS_TURN_ANGLE);
-            if(analogRead(TAPE_L) < BLACK_LEFT_CUTOFF || analogRead(TAPE_R) < BLACK_RIGHT_CUTOFF) {
-            rock_step = 2; 
+            if(analogRead(TAPE_L) < BLACK_LEFT_CUTOFF && analogRead(TAPE_R) < BLACK_RIGHT_CUTOFF) {
+                rock_step = 2; 
             }
         }
     }
@@ -434,6 +434,7 @@ uint32_t index_tape_follow_2 = 0;
 uint32_t gyro_reading_index = 0;
 
 StateMachine::state StateMachine::tapeFollowState2() {
+    
 
     if(!once) {
         resetTotal();
@@ -451,10 +452,10 @@ StateMachine::state StateMachine::tapeFollowState2() {
     if (follow_step < 1) {
         analogPID(.6,0,0, 420, 380);
     } else {
-        analogPID(.5,0,0, 420, 380);
+        analogPID(.6,0,0, 420, 380);
     }
 
-    if (follow_step == 0 && millis() - tape_follow_state_timer > 4000) {
+    if (follow_step == 0 && millis() - tape_follow_state_timer > 5000) {
         set_motor_speed(77);
         follow_step++;
     }    

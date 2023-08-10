@@ -17,7 +17,7 @@
 
 // Modification for the post rocks motor control 
 #define POST_ROCKS_TURN_ANGLE 12
-#define POST_ROCKS_MOTOR_SPEED 75
+#define POST_ROCKS_MOTOR_SPEED 56
 #define RESTART_MOTORS_TIMER 150
 
 
