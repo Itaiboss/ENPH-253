@@ -199,7 +199,7 @@ StateMachine::state StateMachine::irState() {
         notOnRocksTapeSensors = 0;
         notOnRocksGyro = 0;
         onRocksCounter = 0;
-        set_motor_speed(95);
+        set_motor_speed(97);
         storePosition();
         once = true;
         counter = 0;
@@ -434,7 +434,7 @@ uint32_t index_tape_follow_2 = 0;
 uint32_t gyro_reading_index = 0;
 
 StateMachine::state StateMachine::tapeFollowState2() {
-    
+
 
     if(!once) {
         resetTotal();
@@ -455,13 +455,13 @@ StateMachine::state StateMachine::tapeFollowState2() {
         analogPID(.6,0,0, 420, 380);
     }
 
-    if (follow_step == 0 && millis() - tape_follow_state_timer > 5000) {
-        set_motor_speed(77);
+    if (follow_step == 0 && millis() - tape_follow_state_timer > 4000) {
+        set_motor_speed(80);
         follow_step++;
     }    
 
     // this block handles before you have hit the second marker. 
-    if (follow_step >= 0 && millis() - tape_follow_state_timer > 6000) {
+    if (follow_step >= 0 && millis() - tape_follow_state_timer > 5000) {
 
         if (digitalRead(TAPE_E_L) && (analogRead(TAPE_L) > 200 || analogRead(TAPE_R) > 200)) {
             trial_counter_tape++;

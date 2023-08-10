@@ -18,7 +18,7 @@
 // Modification for the post rocks motor control 
 #define POST_ROCKS_TURN_ANGLE 12
 #define POST_ROCKS_MOTOR_SPEED 56
-#define RESTART_MOTORS_TIMER 150
+#define RESTART_MOTORS_TIMER 250
 
 
 // Settings for how the sensitive should be to the isOnRocks function. 
