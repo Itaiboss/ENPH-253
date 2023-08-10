@@ -16,8 +16,8 @@
 #define IR_LOST_MODE_OSCILLATION_TIME 1000 //millis
 
 // Modification for the post rocks motor control 
-#define POST_ROCKS_TURN_ANGLE 19
-#define POST_ROCKS_MOTOR_SPEED 54
+#define POST_ROCKS_TURN_ANGLE 12
+#define POST_ROCKS_MOTOR_SPEED 75
 #define RESTART_MOTORS_TIMER 150
 
 

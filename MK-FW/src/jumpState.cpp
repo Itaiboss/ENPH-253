@@ -28,12 +28,6 @@ JumpState perform(JumpState current_state) {
 
     CONSOLE_LOG(LOG_TAG, "state: %i", current_state);
 
-    
-    // No matter your state the trial counter will be reset to 0. 
-    if(!once_jump) {
-        trialCounter = 0;
-    }
-
     // ONTAPE block. 
     if (current_state == onTape) {
         // angle the steering ever so slightly towards the left and kick the motors close to top speed. 
@@ -58,6 +52,7 @@ JumpState perform(JumpState current_state) {
         
         if (trialCounter >= 5) {
             once_jump = false;
+            trialCounter = 0;
             return offTape;
         }
 
@@ -77,7 +72,6 @@ JumpState perform(JumpState current_state) {
         // checks to see if all 4 sensors are reading black. 
         // If they are all black for multiple consective times then we know we are now in the air. 
         if (analogRead(TAPE_L) > ON_ROCKS_LEFT_READ && analogRead(TAPE_R) > ON_ROCKS_RIGHT_READ && digitalRead(TAPE_E_L)) {
-
             trialCounter++;
         } else {
             trialCounter = 0;
@@ -86,6 +80,7 @@ JumpState perform(JumpState current_state) {
         // once we have reached the maxmimum number of trials we will now move states. 
         if (trialCounter >= NUM_OF_TRIALS) {
             once_jump = false; 
+            trialCounter = 0;
             return inAir;
         }
         return offTape;
@@ -97,7 +92,7 @@ JumpState perform(JumpState current_state) {
     if (current_state == inAir) {
         // once we are in the air we should cut the motors to zero and turn our wheel in preperation of landing. 
         if (!once_jump) {
-            CONSOLE_LOG(LOG_TAG, "cutting motors during jump");
+            // CONSOLE_LOG(LOG_TAG, "cutting motors during jump");
             set_motor_speed(45);
             set_steering(LANDED_TURNING_ANGLE);
             once_jump = true;
@@ -179,16 +174,16 @@ JumpState perform(JumpState current_state) {
         // STEP 3. 
 
         // handles when we are in ideal position to collect IR beams. 
-        if (on_ground_stepper == 3) {
-            getPosition();
-            if (getYaw() > MIN_ANGLE_TO_STOP_TURNING || getYaw() < -140) {
-                // this is when we would expect us to reach this angle. and we should stop our steering and continue our current speed forward. 
-                centre_steering();
-                cut_motors();
-                set_motor_speed(LOST_BOY_MOTOR_SPEED);
-                on_ground_stepper = 4;
-                }
-            }
+        // if (on_ground_stepper == 3) {
+        //     getPosition();
+        //     if (getYaw() > MIN_ANGLE_TO_STOP_TURNING || getYaw() < -140) {
+        //         // this is when we would expect us to reach this angle. and we should stop our steering and continue our current speed forward. 
+        //         centre_steering();
+        //         cut_motors();
+        //         set_motor_speed(LOST_BOY_MOTOR_SPEED);
+        //         on_ground_stepper = 4;
+        //         }
+        //     }
         
         // STEP 4. 
 
@@ -227,6 +222,9 @@ JumpState perform(JumpState current_state) {
 
             if (trialCounter >= 3) {
                 cut_motors();
+                on_ground_stepper = 0;
+                trialCounter = 0;
+                once_jump = false;
                 return isIRReady;
             }
         }

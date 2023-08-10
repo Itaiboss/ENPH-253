@@ -19,7 +19,7 @@
 #define I2C_SCL PB6
 #define ZERO PB4 
 #define BEGIN PB11
-#define SIDE PB10
+#define START_SIDE PB10
 #define TAPE_L PB1
 #define TAPE_R PB0
 #define TAPE_E_L PB15
@@ -28,8 +28,7 @@
 #define IR_L PA1
 #define IR_E_R PA5
 #define IR_E_L PA4
-#define LED PB10
-#define START_SIDE LOW
+#define LED PB7
 // Fixed variables 
 #define LEFT_MAX 400
 #define RIGHT_MAX 240
