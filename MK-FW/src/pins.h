@@ -18,6 +18,8 @@
 #define I2C_SDA PB7
 #define I2C_SCL PB6
 #define ZERO PB4 
+#define BEGIN PB11
+#define SIDE PB10
 #define TAPE_L PB1
 #define TAPE_R PB0
 #define TAPE_E_L PB15

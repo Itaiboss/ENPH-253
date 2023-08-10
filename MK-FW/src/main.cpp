@@ -26,6 +26,8 @@ StateMachine state_machine;
 JumpState jumpState = onTape;
 uint32_t start_time_main = 0;
 bool has_finished = false;
+bool side = false;
+bool begin = false; 
 
 
 void setup() {
@@ -36,7 +38,7 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(100);
   state_machine.init();
-  //pinMode(START_SIDE,INPUT);
+  pinMode(START_SIDE,INPUT_PULLUP);
   pidInit();
   ir_init();
   pinMode(ZERO, INPUT);
@@ -44,11 +46,11 @@ void setup() {
   pinMode(LEFT_MOTOR_BACKWARD, OUTPUT);
   pinMode(RIGHT_MOTOR_FORWARD, OUTPUT);
   pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
+  pinMode(BEGIN, INPUT_PULLUP);
   // imuInit();
   storePosition();
   set_motor_speed(100);
   pinMode(LED, OUTPUT);
-
   centre_steering();
   // pwm_start(LEFT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
   // pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3000, RESOLUTION_12B_COMPARE_FORMAT);
@@ -68,6 +70,11 @@ uint32_t speed_index = 0;
 
 
 void loop() {
+
+  if(digitalRead(BEGIN)== LOW) {
+    begin = true; 
+  }
+  if (begin){
 
   // centre_steering();
 
@@ -135,4 +142,5 @@ void loop() {
 
   // getPosition();
   // CONSOLE_LOG(LOG_TAG, "p: %i, r: %i, y: %i, acc: %i", (int) getPitch(), (int) getRoll(), (int) getYaw(), (int) getUpwardsAcc());
+  }
 }
