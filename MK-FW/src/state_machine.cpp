@@ -147,8 +147,8 @@ StateMachine::state StateMachine::startState() {
         turnComplete = false;
         set_motor_speed(START_SPEED);
         // start on the left so we need a right turn
-        if (START_SIDE == HIGH) {
-            set_steering(-START_TURNING_ANGLE);
+        if (digitalRead(START_SIDE) == HIGH) {
+            set_steering(-34);
         } else {
             // START ON right
             set_steering(START_TURNING_ANGLE);
@@ -450,12 +450,12 @@ StateMachine::state StateMachine::tapeFollowState2() {
     }
 
     if (follow_step < 1) {
-        analogPID(.6,0,0, 420, 380);
+        analogPID(.7,0,0, 420, 380);
     } else {
         analogPID(.6,0,0, 420, 380);
     }
 
-    if (follow_step == 0 && millis() - tape_follow_state_timer > 3500) {
+    if (follow_step == 0 && millis() - tape_follow_state_timer > 4000) {
         set_motor_speed(80);
         follow_step++;
     }    
