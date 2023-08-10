@@ -9,10 +9,10 @@
 #include <logs.h>
  
 MPU6050 mpu(Wire);
-int16_t roll, pitch, yaw;
-int16_t lastRoll, lastPitch, lastYaw;
-int16_t offsetRoll, offsetPitch, offsetYaw = 0;
-int16_t threshold = 3; //degrees, change of angle that happens when car is on rocks
+int32_t roll, pitch, yaw;
+int32_t lastRoll, lastPitch, lastYaw;
+int32_t offsetRoll, offsetPitch, offsetYaw = 0;
+int32_t threshold = 2; //degrees, change of angle that happens when car is on rocks
 
 static const char* LOG_TAG = "IMU";
 
@@ -63,13 +63,17 @@ bool isUpwardsAcceleration() {
     return false;
 }
 
+double getUpwardsAcc() {
+    return mpu.getAccZ();
+}
+
 /**
  * @brief  Converts the given angle between -360 and 360 to the domain of -180 and 180. 
  * @note   
  * @param  angle: The angle you would like to convert. 
  * @retval A integer value within -180 and 180 represetning the angle in that domain. 
  */
-int16_t convertToDomain(int16_t angle) {
+int32_t convertToDomain(double angle) {
     if (angle > 180) {
         return angle - 360;
     }
@@ -89,25 +93,24 @@ int16_t convertToDomain(int16_t angle) {
  * @retval True if the robot is on the rocks, false otherwise. 
  */
 bool isOnRocks(){
-    int16_t diffRoll, diffPitch, diffYaw;
-    diffRoll = abs(roll - lastRoll);
+    int32_t diffRoll, diffPitch, diffYaw;
     diffPitch = abs(pitch - lastPitch);
-    diffYaw = abs(yaw - lastYaw);
+    CONSOLE_LOG(LOG_TAG, "diff_pitch: %i, pitch: %i, last pitch: %i", diffPitch, pitch, lastPitch);
     if(diffPitch >= threshold){// || diffYaw >= threshold){
         return true;
     }
     return false;
 }
 
-int16_t getRoll(){
+int32_t getRoll(){
     return convertToDomain(roll - offsetRoll);
 }
 
-int16_t getPitch(){
+int32_t getPitch(){
     return convertToDomain(pitch - offsetPitch);
 }
 
-int16_t getYaw(){
+int32_t getYaw(){
     return convertToDomain(yaw - offsetYaw);
 }
 
@@ -117,29 +120,12 @@ int16_t getYaw(){
  * @retval None
  */
 void storePosition(){
-    // int32_t roll_total = 0;
-    // int32_t yaw_total = 0;
-    // int32_t pitch_total = 0;
 
-    
+    getPosition();
 
-    // for (int i = 0; i < 6; i++) {
-    //     mpu.update();
-    //     roll_total += mpu.getAngleX();
-    //     yaw_total += mpu.getAngleZ();
-    //     pitch_total += mpu.getAngleY();
-        
-    // }
-
-    // // CONSOLE_LOG(LOG_TAG, "%i, %i, %i", roll_total, yaw_total, pitch_total);
-
-    // offsetRoll = roll_total / 6;
-    // offsetPitch = pitch_total / 6;
-    // offsetYaw = yaw_total / 6;
-
-    offsetPitch = 0;
-    offsetRoll = 0;
-    offsetYaw = 0;
+    offsetRoll = getRoll();
+    offsetPitch = getPitch();
+    offsetYaw = getYaw();
 }
 
 

@@ -90,7 +90,7 @@ uint32_t control_history[3] = {0};
 
 
 
-void analogPID(double kp, double kd, double ki, uint32_t white_threshold) {
+void analogPID(double kp, double kd, double ki, uint32_t left_threshold, uint32_t right_threshold) {
     uint32_t left_reading = analogRead(TAPE_L);
     uint32_t right_reading = analogRead(TAPE_R);
 
@@ -116,7 +116,7 @@ void analogPID(double kp, double kd, double ki, uint32_t white_threshold) {
     // uint32_t left_min = on_white ? from_white_left : to_white_left; 
     // uint32_t right_min = on_white ? from_white_right : to_white_right;
 
-    if (left_reading + right_reading < white_threshold) {
+    if (left_reading < left_threshold && right_reading < right_threshold) {
 
         if (last_error > 0) {
             left_rail_counter++;
@@ -143,7 +143,7 @@ void analogPID(double kp, double kd, double ki, uint32_t white_threshold) {
         error = (-right_reading_boost * (right_reading) + left_reading_boost * (left_reading));
         if (rail_setting == 1) {
             if (error <= 0) {
-                error = 400;
+                error = 300;
 
             }
             rail_setting = 0;
@@ -151,7 +151,7 @@ void analogPID(double kp, double kd, double ki, uint32_t white_threshold) {
 
         } else if (rail_setting == -1) {
             if (error >= 0) {
-                error = -400;
+                error = -300;
             } 
             rail_setting = 0;
             

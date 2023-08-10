@@ -14,10 +14,13 @@
 #define TOP_FREQUENCY_CUTOFF 1150
 #define MIN_DETECTION_AMPLITUDE 100
 #define EXPECTED_FREQUENCY
+#define IS_CLOSE_VALUE 740
 
 void ir_init();
 
 bool noIRFound();
+
+bool getIsClose();
 
 bool IR_present();
 

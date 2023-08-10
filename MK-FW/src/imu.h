@@ -10,6 +10,8 @@ void getPosition();
 
 bool isUpwardsAcceleration();
 
+double getUpwardsAcc();
+
 int16_t getRoll();
 
 int16_t getPitch();

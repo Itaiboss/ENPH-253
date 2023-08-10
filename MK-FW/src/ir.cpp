@@ -63,6 +63,12 @@ double outsideLeftWeight = 5.5;
 uint32_t frequency_check_frequency = 0;
 uint32_t low_readings_counter = 0;
 
+bool isClose = false;
+
+bool getIsClose() {
+  return isClose;
+}
+
 void ir_init() {
   pinMode(IR_R, INPUT);
   pinMode(IR_L, INPUT);
@@ -72,6 +78,7 @@ void ir_init() {
   does_need_frequency_check = true;
   trials_since_last_check = 0;
   low_readings_counter = 0;
+  isClose = false;
   // gives the default values for 
   
 }
@@ -296,7 +303,7 @@ void ir_PID() {
     right_extreme_amplitude = 0;
   }
 
-  // CONSOLE_LOG(LOG_TAG, "[%i, %i, %i, %i]", (int) left_extreme_ampltude, (int) left_amplitude, (int) right_amplitude, (int) right_extreme_amplitude);
+  CONSOLE_LOG(LOG_TAG, "[%i, %i, %i, %i]", (int) left_extreme_ampltude, (int) left_amplitude, (int) right_amplitude, (int) right_extreme_amplitude);
 
   uint32_t max = 0;
   if (right_amplitude > max) {
@@ -305,6 +312,12 @@ void ir_PID() {
 
   if (left_amplitude > max) {
     max = left_amplitude;
+  }
+
+  if (right_amplitude > IS_CLOSE_VALUE || left_amplitude > IS_CLOSE_VALUE || left_extreme_ampltude > IS_CLOSE_VALUE || right_extreme_amplitude > IS_CLOSE_VALUE) {
+    isClose = true;
+  } else {
+    isClose = false;
   }
 
   // CONSOLE_LOG(LOG_TAG, "max val: %i", max);

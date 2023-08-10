@@ -20,9 +20,13 @@ bool once_jump = false;
 uint32_t on_ground_timer = 0;
 uint32_t on_ground_stepper = 0;
 bool has_centered_steering = false;
+uint32_t preparing_for_jump_timer = 0;
+uint32_t inAirTimer = 0;
 
 
 JumpState perform(JumpState current_state) {
+
+    CONSOLE_LOG(LOG_TAG, "state: %i", current_state);
 
     
     // No matter your state the trial counter will be reset to 0. 
@@ -38,6 +42,8 @@ JumpState perform(JumpState current_state) {
             set_motor_speed(PREJUMP_MOTOR_SPEED);
             set_steering(PREJUMP_STEERING_ANGLE);
             once_jump = true;
+            preparing_for_jump_timer = millis();
+
         }
 
         // CONSOLE_LOG(LOG_TAG, "r: %i rr:%i  l: %i ll:%i ", digitalRead(TAPE_R), digitalRead(TAPE_RR), digitalRead(TAPE_L), digitalRead(TAPE_LL));
@@ -50,7 +56,7 @@ JumpState perform(JumpState current_state) {
             trialCounter = 0;
         } 
         
-        if (trialCounter >= NUM_OF_TRIALS) {
+        if (trialCounter >= 5) {
             once_jump = false;
             return offTape;
         }
@@ -70,7 +76,7 @@ JumpState perform(JumpState current_state) {
         
         // checks to see if all 4 sensors are reading black. 
         // If they are all black for multiple consective times then we know we are now in the air. 
-        if (analogRead(TAPE_L) > ON_ROCKS_LEFT_READ && analogRead(TAPE_R) > ON_ROCKS_RIGHT_READ) {
+        if (analogRead(TAPE_L) > ON_ROCKS_LEFT_READ && analogRead(TAPE_R) > ON_ROCKS_RIGHT_READ && digitalRead(TAPE_E_L)) {
 
             trialCounter++;
         } else {
@@ -95,14 +101,11 @@ JumpState perform(JumpState current_state) {
             set_motor_speed(45);
             set_steering(LANDED_TURNING_ANGLE);
             once_jump = true;
+            inAirTimer = millis();
         }
         
-        // if we have multiple (non consecective) upwards acceleration we can move on to the onGroundState
-        if (isUpwardsAcceleration()) {
-            trialCounter++;
-        }
 
-        if (trialCounter >= NUM_OF_TRIALS) {
+        if (millis() - inAirTimer >= 200) {
             once_jump = false;
             return onGround;
         }
@@ -135,8 +138,8 @@ JumpState perform(JumpState current_state) {
             // set_motor_speed(LANDED_MOTOR_SPEED);
             
             pwm_start(RIGHT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
-            pwm_start(LEFT_MOTOR_FORWARD, 1000, 3000, RESOLUTION_12B_COMPARE_FORMAT);
-            set_steering(85);
+            pwm_start(LEFT_MOTOR_FORWARD, 1000, 3200, RESOLUTION_12B_COMPARE_FORMAT);
+            set_steering(65);
     
             on_ground_stepper = 1;
         }
@@ -216,7 +219,14 @@ JumpState perform(JumpState current_state) {
                 trialCounter = 0;
             }
 
+            if (trialCounter > 0) {
+                centre_steering();
+            } else {
+                set_steering(LOST_BOY_TURNING_ANGLE);
+            }
+
             if (trialCounter >= 3) {
+                cut_motors();
                 return isIRReady;
             }
         }

@@ -26,6 +26,7 @@
 #define IR_L PA1
 #define IR_E_R PA5
 #define IR_E_L PA4
+#define LED PB10
 #define START_SIDE LOW
 // Fixed variables 
 #define LEFT_MAX 400
