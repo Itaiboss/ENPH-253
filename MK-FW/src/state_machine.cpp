@@ -309,7 +309,7 @@ StateMachine::state StateMachine::irState() {
     }
 
     if (rock_step == 7) {
-        set_motor_speed(55);
+        set_motor_speed(68);
         set_steering(-100);
         rock_step = 8;
     }
@@ -455,7 +455,7 @@ StateMachine::state StateMachine::tapeFollowState2() {
         analogPID(.6,0,0, 420, 380);
     }
 
-    if (follow_step == 0 && millis() - tape_follow_state_timer > 4000) {
+    if (follow_step == 0 && millis() - tape_follow_state_timer > 3500) {
         set_motor_speed(80);
         follow_step++;
     }    
