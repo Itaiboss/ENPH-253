@@ -49,7 +49,7 @@ void setup() {
   pinMode(RIGHT_MOTOR_BACKWARD, OUTPUT);
   // imuInit();
   pinMode(LED, OUTPUT);
-  // set_motor_speed(60);
+  //set_motor_speed(70);
   // pwm_start(LEFT_MOTOR_FORWARD, 1000, 4098, RESOLUTION_12B_COMPARE_FORMAT);
   // pwm_start(RIGHT_MOTOR_FORWARD, 1000, 3000, RESOLUTION_12B_COMPARE_FORMAT);
   
@@ -76,6 +76,8 @@ void loop() {
   if (begin){
 
     // analogPID(.6,0,0, 420, 380);
+
+    // CONSOLE_LOG(LOG_TAG, "[%i, %i]", digitalRead(TAPE_E_L), digitalRead(TAPE_E_R));
     
     state_machine.determineState();
     // CONSOLE_LOG(LOG_TAG, "[%i, %i, %i, %i]", analogRead(IR_E_L), analogRead(IR_L), analogRead(IR_R), analogRead(IR_E_R));

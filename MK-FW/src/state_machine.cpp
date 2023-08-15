@@ -145,13 +145,18 @@ StateMachine::state StateMachine::startState() {
     if (!once) {
         ir_count = 0;
         turnComplete = false;
-        set_motor_speed(START_SPEED);
+
+        
         // start on the left so we need a right turn
         if (digitalRead(START_SIDE) == HIGH) {
-            set_steering(-34);
+            set_motor_speed(78);
+            set_steering(-31);
+            
         } else {
             // START ON right
+            set_motor_speed(START_SPEED);
             set_steering(START_TURNING_ANGLE);
+            
         }
         completed_turn_time = millis() ;
         once = true; 
@@ -439,7 +444,7 @@ StateMachine::state StateMachine::tapeFollowState2() {
     if(!once) {
         resetTotal();
         follow_step = 0;
-        set_motor_speed(69);
+        set_motor_speed(72);
         //stores the position so that we can know when we are on the ramp. 
         once = true;
         trial_counter_tape = 0;
@@ -452,18 +457,19 @@ StateMachine::state StateMachine::tapeFollowState2() {
     if (follow_step < 1) {
         analogPID(.7,0,0, 420, 380);
     } else {
-        analogPID(.6,0,0, 420, 380);
+        analogPID(.55,0,0, 420, 380);
     }
 
     if (follow_step == 0 && millis() - tape_follow_state_timer > 4000) {
-        set_motor_speed(80);
+        set_motor_speed(83);
         follow_step++;
     }    
 
     // this block handles before you have hit the second marker. 
-    if (follow_step >= 0 && millis() - tape_follow_state_timer > 5000) {
+    if (follow_step >= 0 && millis() - tape_follow_state_timer > 4500) {
 
-        if (digitalRead(TAPE_E_L) && (analogRead(TAPE_L) > 200 || analogRead(TAPE_R) > 200)) {
+        if (digitalRead(TAPE_E_L) && (analogRead(TAPE_L) > 150 || analogRead(TAPE_R) > 150)
+        ) {
             trial_counter_tape++;
         } else {
             trial_counter_tape = 0;
