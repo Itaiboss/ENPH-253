@@ -1,2 +1,1 @@
-# ENPH-253
-Firmware repository for ROBOT
+# Firmware repository for the enph 253 robotics competition.
