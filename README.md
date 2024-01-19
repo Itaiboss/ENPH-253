@@ -11,7 +11,8 @@ Our approach was to find the shortest possible path along the course and complet
 
 | Mech | Elec | Software |
 |----------------------|--------|------|
-| <ul><li> Modelled, fabricated/machined and tested all mechanical components. </li><li> Implemented rack and pinion servo steering, as well as front bumper for knocking away obstacles and mitigating impact forces.<li> optimized weight for a sub 1.5 kg design to increase max speed while also keeping a robust chassis for handling continual impacts</li> </ul> | <ul><li> Designed circuits schematics for tape and IR sensor, H-bridge for motor control, as well as boards for power management and interfacing with the stm-32 microcontroller.</li><li> Designed custom PCB's for all circuits to increase space efficiency while allowing for modularity and easy repairs. </li><li> Optimized power consumption to decrease battery weight<li> Optocoupled signals to H-bridge to mitigate noise from motors</li></ul> | <ul><li> Designed finite state machine to take inputs and determine various state based actions</li> </li><li> Implemented PID control algorithms for tape and IR following</li> <li> Designed system to interface with and zero IMU to determine rotation/position charecteristics </li> <li>Designed IR frequency sampling and detection algorithm using FFTs, to differentiate and follow specific IR frequencies</ul>|
+| <ul><li> Modelled, fabricated/machined and tested all mechanical components. </li><li> Implemented rack and pinion servo steering, as well as front bumper for knocking away obstacles and mitigating impact forces.<li> optimized weight for a sub 1.5 kg design to increase max speed while also keeping a robust chassis for handling continual impacts</li> </ul> | <ul><li> Designed circuits schematics for tape and IR sensor, H-bridge for motor control, as well as boards for power management and interfacing with the stm-32 microcontroller.</li><li> Designed custom PCB's for all circuits to increase space efficiency while allowing for modularity and easy repairs. </li><li> Optimized power consumption to decrease battery weight<li> Optocoupled signals to H-bridge and servos to mitigate noise</li></ul> | <ul><li> Designed finite state machine to take inputs and determine various state based actions</li> </li><li> Implemented PID control algorithms for tape and IR following</li> <li> Designed system to interface with and zero IMU to determine rotation/position charecteristics </li> <li>Designed IR frequency sampling and detection algorithm using FFTs, to differentiate and follow specific IR frequencies</ul>|
+
 
 ## Media 
 Internal electronics
@@ -20,6 +21,11 @@ Outer Electronics
 ![IMG_0596](https://github.com/Itaiboss/ENPH-253/assets/90986809/8d14ea97-f650-418b-85a3-3fed9f29da9a)
 Bottom View 
 ![IMG_0598](https://github.com/Itaiboss/ENPH-253/assets/90986809/96ad9327-d29e-433a-8021-72b7dd501840)
+
+PCB's 
+|Power| Motherboard | Tape sensors| IR sensors|
+|-------|-----|----|-----|
+|<img width="694" alt="Screenshot 2024-01-19 at 11 19 21 AM" src="https://github.com/Itaiboss/ENPH-253/assets/90986809/b30980f2-984f-437c-9a98-7886988aed44">|<img width="335" alt="Screenshot 2024-01-19 at 11 20 25 AM" src="https://github.com/Itaiboss/ENPH-253/assets/90986809/a287826d-43b0-4146-b2a6-624ae34b40c4">|<img width="546" alt="Screenshot 2024-01-19 at 11 20 01 AM" src="https://github.com/Itaiboss/ENPH-253/assets/90986809/5f227379-aca0-4471-8eb5-1eeace93d1d3">|<img width="445" alt="Screenshot 2024-01-19 at 11 20 43 AM" src="https://github.com/Itaiboss/ENPH-253/assets/90986809/f67fe625-f0ca-429f-a55b-889ee7ae786d">|
 
 
 ### Steering System test video
